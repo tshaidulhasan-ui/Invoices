@@ -5,95 +5,198 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Invoices">
-<meta name="theme-color" content="#f5f5f7">
+<meta name="theme-color" content="#f4f5f7">
 <title>Invoices</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
-:root{--bg:#f5f5f7;--card:#fff;--tx:#1d1d1f;--mu:#6e6e73;--ln:#e5e5ea;--ac:#1f4e79;--gr:#1e8e3e;--rd:#d93025;--am:#b06000}
+:root{--bg:#f4f5f7;--card:#fff;--tx:#16181d;--mu:#6b7280;--ln:#e6e8ec;--ac:#1f3a5f;--acs:#e9eef4;--gr:#16a34a;--grs:#e8f6ee;--rd:#dc2626;--rds:#fdecec;--am:#b45309;--ams:#fef3e2;--sh:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.08);--r:14px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
-body{padding:env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom))}
-.wrap{max-width:640px;margin:0 auto;padding:12px 16px}
-h1{font-size:30px;margin:8px 0 6px}
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--mu);margin:22px 4px 8px;font-weight:600}
-.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.card{background:var(--card);border-radius:14px;overflow:hidden}
-.pad{padding:14px 16px}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.stat{background:var(--card);border-radius:14px;padding:12px 14px}
-.stat b{display:block;font-size:20px;margin-top:2px}.stat span{font-size:13px;color:var(--mu)}
-.btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-family:inherit;font-weight:600;font-size:16px;background:var(--ac);color:#fff;cursor:pointer}
-.btn.sec{background:#e8eef5;color:var(--ac)}.btn.dan{background:#fdecea;color:var(--rd)}
-.btn.full{width:100%}.btn.sm{padding:8px 12px;font-size:14px}
-.link{background:none;border:0;color:var(--ac);font-family:inherit;font-size:16px;font-weight:600;padding:8px 0;cursor:pointer}
-.field{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--ln)}
-.field:first-child{border-top:0}
-.field label{color:var(--mu);font-size:15px;white-space:nowrap}
-.field input,.field select{border:0;background:none;font:inherit;text-align:right;color:var(--tx);min-width:0;flex:1;outline:none}
-input:disabled,select:disabled{color:var(--mu);opacity:1}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{padding:env(safe-area-inset-top) 0 calc(78px + env(safe-area-inset-bottom))}
+body.locked{padding-bottom:0}
+button{font-family:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:14px 16px 28px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
+.top h1{font-size:28px;letter-spacing:-.02em;margin:6px 0}
+.mu{color:var(--mu)}.small{font-size:12.5px}
+.cap{font-size:11.5px;font-weight:700;letter-spacing:.07em;color:var(--mu);text-transform:uppercase}
+h2.sec{font-size:12px;font-weight:700;letter-spacing:.07em;color:var(--mu);text-transform:uppercase;margin:26px 4px 10px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.pad{padding:16px}
+.btn{appearance:none;border:0;border-radius:10px;padding:11px 16px;font-weight:600;font-size:15px;background:var(--ac);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:filter .15s;text-decoration:none}
+.btn:hover{filter:brightness(1.08)}.btn:disabled{opacity:.4;cursor:default}
+.btn.sec{background:var(--acs);color:var(--ac)}.btn.dan{background:var(--rds);color:var(--rd)}.btn.ghost{background:none;color:var(--mu)}
+.btn.sm{padding:8px 12px;font-size:13.5px}.btn.full{width:100%}
+.link{background:none;border:0;color:var(--ac);font-weight:600;font-size:15px;padding:8px 0;cursor:pointer}
+.inp{width:100%;border:1px solid var(--ln);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;background:#fff;color:var(--tx);outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+select.inp{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236b7280' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center;padding-right:34px}
+.inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acs)}
+.inp:disabled{background:#f7f7f8;color:var(--mu)}
+textarea.inp{resize:vertical;min-height:130px;line-height:1.45}
+.fld label,.lbl{display:block;font-size:13px;font-weight:600;color:var(--mu);margin:0 0 6px}
+.lbl{margin-top:14px}
+.fgrid{display:grid;grid-template-columns:1fr;gap:14px;padding:16px}
+.tg{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;border-top:1px solid var(--ln)}
+.sw{position:relative;width:46px;height:28px;flex:none;display:inline-block}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw span{position:absolute;inset:0;background:#d4d6db;border-radius:99px;transition:.2s;cursor:pointer}
+.sw span:before{content:"";position:absolute;width:24px;height:24px;left:2px;top:2px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.2s}
+.sw input:checked+span{background:var(--ac)}
+.sw input:checked+span:before{transform:translateX(18px)}
+.sw input:disabled+span{opacity:.5;cursor:default}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.stat{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px}
+.stat b{display:block;font-size:21px;letter-spacing:-.01em;margin-top:2px}
+.fy{font:inherit;font-weight:600;border:1px solid var(--ln);background:#fff;border-radius:10px;padding:8px 12px;color:var(--tx)}
+.mhead{display:flex;justify-content:space-between;margin:26px 4px 10px}
 .row{position:relative;overflow:hidden;border-top:1px solid var(--ln)}.row:first-child{border-top:0}
-.rc{position:relative;z-index:2;background:var(--card);padding:12px 16px;display:flex;justify-content:space-between;gap:12px;align-items:center;cursor:pointer}
+.rc{position:relative;z-index:2;background:var(--card);padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:background .15s}
+.rc:hover{background:#fafbfc}
+.av{width:38px;height:38px;border-radius:10px;background:var(--acs);color:var(--ac);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+.grow{flex:1;min-width:0}.grow b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.amt{font-weight:700;text-align:right;white-space:nowrap}
 .acts{position:absolute;top:0;bottom:0;display:flex;z-index:1}.acts.r{right:0}.acts.l{left:0}
-.acts button{border:0;color:#fff;font-family:inherit;font-weight:600;font-size:13px;width:72px}
-.a-share{background:#1f78d1}.a-copy{background:#8e8e93}.a-del{background:var(--rd)}.acts .a-paid{background:var(--gr);width:90px}
-.sub{font-size:13px;color:var(--mu)}
-.amt{font-weight:600;text-align:right;white-space:nowrap}
-.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:3px}
-.p-draft{background:#eee;color:#555}.p-sent{background:#e3eefa;color:#1f5fa8}.p-paid{background:#e6f4ea;color:var(--gr)}.p-over{background:#fdecea;color:var(--rd)}
-.mhead{display:flex;justify-content:space-between;margin:22px 4px 8px;font-size:13px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--ln);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:10}
-.tabs button{flex:1;border:0;background:none;padding:8px 0 10px;font-family:inherit;font-weight:600;font-size:12px;color:var(--mu)}
-.tabs button.on{color:var(--ac)}
-.tabs svg{display:block;margin:0 auto 2px;width:24px;height:24px}
-.fab{position:fixed;right:18px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:11;border-radius:28px;padding:14px 20px;box-shadow:0 6px 18px rgba(31,78,121,.35)}
-.day{border-top:1px solid var(--ln);padding:12px 16px}.day:first-child{border-top:0}
-.dayh{display:flex;align-items:center;gap:10px}.dayh input{width:22px;height:22px;accent-color:var(--ac);flex:none}
-.dayg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-.dayg label{font-size:12px;color:var(--mu)}
-.dayg input{width:100%;border:1px solid var(--ln);border-radius:8px;padding:7px 5px;font:inherit;font-size:15px;background:#fafafa;color:var(--tx)}
-.tag{font-size:11px;font-weight:700;background:#fff4e5;color:var(--am);border-radius:6px;padding:2px 6px}
-.banner{background:#fff4e5;color:#7a4300;border-radius:12px;padding:12px 14px;margin:12px 0;font-size:14px}
-.banner.blue{background:#e8eef5;color:#1f3f5f}
-.seg{display:flex;background:#e9e9ee;border-radius:10px;padding:3px;gap:3px}
-.seg button{flex:1;border:0;background:none;padding:8px;border-radius:8px;font-family:inherit;font-weight:600;font-size:14px;color:var(--tx)}
+.acts button{border:0;color:#fff;font-weight:600;font-size:12.5px;width:72px}
+.a1{background:#2563eb}.a2{background:#6b7280}.a3{background:var(--rd)}.acts .a0{background:var(--gr);width:90px}
+.hov{display:none;gap:2px}
+.hov button{border:0;background:none;color:var(--mu);font-size:12.5px;font-weight:600;padding:6px 8px;border-radius:8px;cursor:pointer}
+.hov button:hover{background:var(--acs);color:var(--ac)}
+@media(hover:hover) and (pointer:fine){.hov{display:flex}.swipehint{display:none}}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;margin-top:4px}
+.p-draft{background:#eef0f3;color:#4b5563}.p-sent{background:#e7efff;color:#1d4ed8}.p-paid{background:var(--grs);color:var(--gr)}.p-over{background:var(--rds);color:var(--rd)}
+.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--ln);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:20}
+.nav .brand,.nav .spacer,.nav .lockb{display:none}
+.nav .nb{flex:1;border:0;background:none;padding:8px 0 10px;font-weight:600;font-size:11.5px;color:var(--mu);cursor:pointer}
+.nav .nb.on{color:var(--ac)}
+.nav svg{display:block;margin:0 auto 3px;width:23px;height:23px}
+@media(max-width:899px){.nav.hidemob{display:none}}
+.fab{position:fixed;right:18px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:15;border-radius:99px;padding:14px 22px;box-shadow:0 8px 24px rgba(16,24,40,.25)}
+.day{border-top:1px solid var(--ln);padding:14px 16px}.day:first-child{border-top:0}
+.dayh{display:flex;align-items:center;gap:12px}
+.dayg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.dayg label{font-size:11.5px;color:var(--mu);font-weight:600}
+.dayg .inp{padding:8px 6px;font-size:15px}
+.tag{font-size:11px;font-weight:700;background:var(--ams);color:var(--am);border-radius:6px;padding:2px 7px;margin-left:4px}
+.banner{background:var(--ams);color:#7c3d06;border-radius:12px;padding:12px 14px;margin:14px 0;font-size:14px}
+.banner.info{background:var(--acs);color:var(--ac)}
+.seg{display:flex;background:#eceef1;border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;padding:9px;border-radius:8px;font-weight:600;font-size:14px;color:var(--tx);cursor:pointer}
 .seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.tot{display:flex;justify-content:space-between;padding:6px 16px}
-.tot.big{font-weight:700;font-size:18px;border-top:1px solid var(--ln);padding-top:10px;margin-top:4px}
-.lock{min-height:85vh;display:flex;flex-direction:column;justify-content:center;max-width:380px;margin:0 auto;padding:24px}
-.pinin{width:100%;font-size:20px;letter-spacing:.25em;text-align:center;padding:13px;border:1px solid var(--ln);border-radius:12px;margin:6px 0;background:#fff;color:var(--tx)}
+.seg button:disabled{cursor:default}
+.tot{display:flex;justify-content:space-between;padding:7px 16px}
+.tot.big{font-weight:700;font-size:18px;border-top:1px solid var(--ln);padding-top:12px;margin-top:4px}
+.hist{font-size:13px;padding:12px 16px;border-top:1px solid var(--ln)}.hist:first-child{border-top:0}
+.empty{text-align:center;color:var(--mu);padding:48px 20px}
+.edgrid{display:grid}
+.stack{display:grid;gap:10px}
+.sws{display:flex;gap:10px;flex-wrap:wrap}
+.swc{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--ln);cursor:pointer}
+.swc.on{box-shadow:0 0 0 2px var(--tx)}
+.lockwrap{min-height:88vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.lockcard{width:100%;max-width:400px;background:#fff;border-radius:20px;box-shadow:0 10px 40px rgba(16,24,40,.08);padding:30px 26px}
+.lockcard h1{margin:0 0 6px;font-size:24px}
+.logo{width:48px;height:48px;border-radius:13px;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;letter-spacing:.02em;flex:none}
+.pinin{text-align:center;font-size:22px;letter-spacing:.3em;margin:6px 0}
 .pinin.rec{letter-spacing:.06em;font-size:17px}
-.code{font:600 20px ui-monospace,Menlo,monospace;background:#fff;border-radius:12px;padding:16px;text-align:center;letter-spacing:.05em;margin:12px 0;-webkit-user-select:all;user-select:all}
-.err{color:var(--rd);font-size:14px;min-height:22px;margin:4px 0}
-.hist{font-size:13px;padding:10px 16px;border-top:1px solid var(--ln)}.hist:first-child{border-top:0}
-.paper{background:#fff;border-radius:14px;padding:20px 14px;font-size:12px;margin-top:10px}
-.paper h3{font-size:24px;margin:0}
-.paper table{width:100%;border-collapse:collapse;margin:8px 0}
-.paper th{background:#1f4e79;color:#fff;text-align:left;padding:5px;font-size:11px}
-.paper td{padding:5px;border-bottom:1px solid var(--ln)}
-.paper .num{text-align:right}.paper .pt{font-weight:700;font-size:14px;margin-top:14px}
-.empty{text-align:center;color:var(--mu);padding:40px 20px}
+.code{font:600 19px ui-monospace,Menlo,monospace;background:var(--acs);color:var(--ac);border-radius:12px;padding:16px;text-align:center;letter-spacing:.05em;margin:14px 0;-webkit-user-select:all;user-select:all}
+.err{color:var(--rd);font-size:13.5px;min-height:22px;margin:6px 0}
+.ov{position:fixed;inset:0;background:rgba(15,20,30,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fd .15s}
+.sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));animation:up .2s}
+.sheet h3{margin:0 0 6px;font-size:19px}
+.mbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+.mbtns.col{flex-direction:column}.mbtns.col .btn{width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips span{font:12px ui-monospace,Menlo,monospace;background:#f1f2f4;border-radius:6px;padding:4px 7px;cursor:pointer}
+@media(min-width:600px){.ov{align-items:center}.sheet{border-radius:20px;padding:26px}}
+@keyframes up{from{transform:translateY(30px);opacity:0}}@keyframes fd{from{opacity:0}}
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#16181d;color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:60;white-space:nowrap}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.paper{background:#fff;border-radius:16px;box-shadow:var(--sh);padding:40px 38px;max-width:820px;margin:16px auto 0;font-size:13.5px;color:#1d1d1f;border-top:6px solid var(--ac)}
+.ih{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.biz b{font-size:20px;display:block;margin-bottom:4px}.biz div{color:var(--mu);line-height:1.6}
+.ttl{text-align:right}.ttl .h{font-size:30px;font-weight:800;letter-spacing:.1em;color:var(--ac)}
+.meta{border-collapse:collapse;margin:8px 0 0 auto}.meta td{padding:2px 0 2px 18px;text-align:right}.meta td:first-child{color:var(--mu)}.meta td:last-child{font-weight:600}
+.ib{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;border-top:1px solid var(--ln);margin-top:24px;padding-top:22px}
+.ib .bt b{font-size:16px;display:block;margin:4px 0}.ib .bt div{color:var(--mu);line-height:1.6}
+.due{background:var(--acs);border-radius:12px;padding:14px 20px;min-width:210px}.due b{display:block;font-size:27px;color:var(--ac);letter-spacing:-.01em}
+.svc{margin:26px 0 10px;font-weight:600}
+.ht{width:100%;border-collapse:collapse}
+.ht th{background:var(--ac);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:10px;text-align:left}
+.ht th:first-child{border-radius:8px 0 0 8px}.ht th:last-child{border-radius:0 8px 8px 0}
+.ht td{padding:10px;border-bottom:1px solid var(--ln)}.ht .n{text-align:right}
+.bn{color:var(--mu);font-size:12.5px;margin-top:10px}
+.tt{margin:18px 0 0 auto;width:290px;max-width:100%}.tt div{display:flex;justify-content:space-between;padding:6px 12px}
+.tt .g{background:var(--ac);color:#fff;font-weight:700;font-size:16px;border-radius:10px;margin-top:6px;padding:12px}
+.pay{margin-top:30px;padding-top:20px;border-top:1px solid var(--ln)}
+.pg{display:grid;grid-template-columns:auto 1fr;gap:5px 28px;margin-top:8px}.pg span{color:var(--mu)}.pg b{font-weight:600}
+.fn{margin-top:22px;color:var(--mu);font-size:12.5px;line-height:1.6}
+@media(max-width:640px){.paper{padding:24px 16px;font-size:12.5px}.ht th,.ht td{padding:8px 5px;font-size:11.5px}.ttl{text-align:left}.meta{margin-left:0}.meta td{text-align:left;padding:2px 18px 2px 0}.due{width:100%}}
+@media(min-width:900px){
+ body{padding:0 0 0 240px}body.locked{padding:0}
+ .nav{top:0;bottom:0;right:auto;width:240px;flex-direction:column;border-top:0;border-right:1px solid var(--ln);padding:22px 14px;background:#fff;gap:4px}
+ .nav .brand{display:flex;align-items:center;gap:12px;padding:0 6px 22px}
+ .nav .brand .logo{width:40px;height:40px;font-size:14px;border-radius:11px}
+ .nav .spacer{display:block;flex:1}
+ .nav .nb,.nav .lockb{flex:none;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;font-size:14.5px;text-align:left;border:0;background:none;color:var(--mu);font-weight:600;cursor:pointer}
+ .nav .nb svg,.nav .lockb svg{margin:0;width:20px;height:20px}
+ .nav .nb.on{background:var(--acs);color:var(--ac)}.nav .nb:hover,.nav .lockb:hover{background:#f4f5f7}
+ .mlock{display:none}
+ .wrap{padding:30px 40px 40px}
+ .stats{grid-template-columns:repeat(4,1fr)}
+ .fgrid.two{grid-template-columns:1fr 1fr}
+ .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;align-items:start}
+ .edgrid{grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+ .side{position:sticky;top:24px}
+ .fab{bottom:30px;right:40px}
+ #toast{bottom:30px}
+}
 </style>
 </head>
 <body>
-<div id="app"></div>
-<nav class="tabs" id="tabs" hidden></nav>
+<nav class="nav" id="nav" hidden></nav>
+<main id="app"></main>
+<div id="modal" hidden></div>
+<div id="toast"></div>
 <script>
 'use strict';
-/* ========== Setup & helpers ========== */
+/* ===== Basics ===== */
 const $=s=>document.querySelector(s);
-const app=$('#app'),tabs=$('#tabs');
+const app=$('#app'),nav=$('#nav');
 const K={meta:'inv.meta',data:'inv.data',fails:'inv.fails'};
-let KEY=null,S=null,E=null,VI=null,view='list',curFY=null,editFrom=null,unlockReason=null;
+let KEY=null,S=null,E=null,VI=null,EM=null,view='list',curFY=null,editFrom=null,unlockReason=null,_res=null;
 const te=new TextEncoder(),td=new TextDecoder();
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const ACC={navy:'#1f3a5f',charcoal:'#2b2f36',teal:'#0f5f63',burgundy:'#7a2336',forest:'#25523a',royal:'#2848a8'};
+const VARS=['client','number','amount','period','duedate','hours','myname','myphone'];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const money=n=>(+n||0).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
+const initials=n=>(String(n||'').replace(/^(mr|mrs|ms|miss|dr)\.?\s+/i,'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase())||'IN';
+const I={inv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/></svg>',
+set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>',
+lock:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'};
 
-/* ========== Dates ========== */
+/* ===== Theme ===== */
+const hexRgb=h=>[1,3,5].map(k=>parseInt(h.slice(k,k+2),16));
+const accHex=()=>ACC[S&&S.settings.accent]||ACC.navy;
+const soft=rgb=>rgb.map(v=>Math.round(v+(255-v)*.9));
+function applyTheme(){const a=accHex(),r=document.documentElement.style;r.setProperty('--ac',a);r.setProperty('--acs',`rgb(${soft(hexRgb(a))})`)}
+
+/* ===== Modal & toast ===== */
+function modal(html){const m=$('#modal');m.innerHTML=`<div class="ov" onclick="if(event.target===this)_done(null)"><div class="sheet">${html}</div></div>`;m.hidden=false}
+function closeModal(){const m=$('#modal');m.hidden=true;m.innerHTML=''}
+function _done(v){closeModal();const r=_res;_res=null;if(r)r(v)}
+function ask(title,msg,ok='OK',danger=false,cancel='Cancel'){return new Promise(r=>{_res=r;modal(`<h3>${esc(title)}</h3><p class="mu">${msg}</p><div class="mbtns">${cancel?`<button class="btn sec" onclick="_done(false)">${cancel}</button>`:''}<button class="btn ${danger?'dan':''}" onclick="_done(true)">${ok}</button></div>`)})}
+const note=(t,m)=>ask(t,m,'OK',false,null);
+function askText(title,label,val=''){return new Promise(r=>{_res=r;modal(`<h3>${esc(title)}</h3><label class="lbl">${esc(label)}</label><input id="mt" class="inp" value="${esc(val)}"><div class="mbtns"><button class="btn sec" onclick="_done(null)">Cancel</button><button class="btn" onclick="_done($('#mt').value)">OK</button></div>`);setTimeout(()=>$('#mt')&&$('#mt').focus(),60)})}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2400)}
+
+/* ===== Dates ===== */
 const D=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d,12)};
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const addDays=(s,n)=>{const d=D(s);d.setDate(d.getDate()+n);return iso(d)};
@@ -102,14 +205,14 @@ const today=()=>iso(new Date());
 const fy=s=>{const d=D(s);return d.getMonth()>=6?d.getFullYear():d.getFullYear()-1};
 const fyLabel=y=>`FY ${y}\u2013${String(y+1).slice(2)}`;
 const fmtD=s=>D(s).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
-const dayName=s=>D(s).toLocaleDateString('en-AU',{weekday:'long'});
+const dayShort=s=>{const d=D(s);return `${d.toLocaleDateString('en-AU',{weekday:'short'})} ${d.getDate()} ${d.toLocaleDateString('en-AU',{month:'short'})}`};
 const t12=s=>{let[h,m]=s.split(':').map(Number);const ap=h>=12?'pm':'am';h=h%12||12;return `${h}:${String(m).padStart(2,'0')} ${ap}`};
 const period=i=>`${D(i.weekStart).toLocaleDateString('en-AU',{day:'numeric',month:'short'})} - ${fmtD(addDays(i.weekStart,6))}`;
 const shortRange=i=>`${D(i.weekStart).toLocaleDateString('en-AU',{day:'numeric',month:'short'})} \u2013 ${D(addDays(i.weekStart,6)).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}`;
 function rangeText(w){if(!w.length)return '';const a=D(w[0].date),b=D(w[w.length-1].date);const f=d=>`${d.toLocaleDateString('en-AU',{weekday:'long'})} ${d.getDate()}`;const my=b.toLocaleDateString('en-AU',{month:'long',year:'numeric'});return w.length===1?`${f(a)} ${my}`:`${f(a)} to ${f(b)} ${my}`}
 function breakText(w){const b=[...new Set(w.map(d=>+d.breakMin))];return b.length===1&&b[0]>0?`Each day includes a ${b[0]}-minute unpaid lunch break.`:''}
 
-/* ========== NSW public holidays (check against nsw.gov.au each year) ========== */
+/* ===== NSW public holidays (check nsw.gov.au yearly) ===== */
 function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return iso(new Date(y,mo-1,da,12))}
 function nthMon(y,mo,n){const d=new Date(y,mo,1,12);while(d.getDay()!==1)d.setDate(d.getDate()+1);d.setDate(d.getDate()+7*(n-1));return iso(d)}
 const holCache={};
@@ -125,7 +228,7 @@ function holidays(y){if(holCache[y])return holCache[y];const h={},add=(s,n)=>h[s
  return holCache[y]=h}
 const holName=s=>holidays(D(s).getFullYear())[s];
 
-/* ========== Encryption ========== */
+/* ===== Encryption ===== */
 function b64(buf){const a=new Uint8Array(buf);let s='';for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));return btoa(s)}
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function deriveKey(secret,salt){const base=await crypto.subtle.importKey('raw',te.encode(secret),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
@@ -137,35 +240,40 @@ function makeRecovery(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const r=crypt
 const normRec=s=>s.toUpperCase().replace(/[^A-Z0-9]/g,'');
 async function wrapPin(meta,raw,pin){const s=crypto.getRandomValues(new Uint8Array(16));meta.saltPin=b64(s);meta.wPin=await aesEnc(await deriveKey(pin,s),raw)}
 async function save(){localStorage.setItem(K.data,JSON.stringify(await aesEnc(KEY,te.encode(JSON.stringify(S)))))}
-function blankState(){return{v:1,settings:{name:'',abn:'',address:'',phone:'',email:'',bank:'',accName:'',bsb:'',accNo:'',service:'Subcontract Electrical Service',rate:53,start:'07:00',finish:'15:30',breakMin:30,terms:7,gst:false,lastBackup:''},clients:[],invoices:[],log:[]}}
-async function openWith(raw){KEY=await importData(raw);const d=localStorage.getItem(K.data);const st=d?JSON.parse(td.decode(await aesDec(KEY,JSON.parse(d)))):blankState();const b=blankState();S=Object.assign(b,st);S.settings=Object.assign(blankState().settings,st.settings||{})}
+function blankSettings(){return{name:'',abn:'',address:'',phone:'',email:'',bank:'',accName:'',bsb:'',accNo:'',service:'Subcontract Electrical Service',rate:53,start:'07:00',finish:'15:30',breakMin:30,terms:7,gst:false,lastBackup:'',accent:'navy',showTerms:false,showBreak:true,showGstNote:true,showFooter:false,footer:'Thank you for your business.'}}
+function defaultTemplates(){return[{name:'Weekly invoice',subject:'Invoice {number} - {period}',body:'Hi {client},\n\nPlease find attached invoice {number} for {period}, totalling ${amount}.\n\nKind regards,\n{myname}\n{myphone}'}]}
+function blankState(){return{v:2,settings:blankSettings(),clients:[],invoices:[],log:[],templates:defaultTemplates()}}
+async function openWith(raw){KEY=await importData(raw);const d=localStorage.getItem(K.data);const st=d?JSON.parse(td.decode(await aesDec(KEY,JSON.parse(d)))):blankState();
+ S=Object.assign(blankState(),st);S.settings=Object.assign(blankSettings(),st.settings||{});if(!Array.isArray(S.templates)||!S.templates.length)S.templates=defaultTemplates();applyTheme()}
 function addLog(text){S.log.unshift({ts:Date.now(),text});S.log=S.log.slice(0,1000)}
 
-/* ========== Wrong-PIN delay ========== */
+/* ===== Wrong-PIN delay ===== */
 const failState=()=>JSON.parse(localStorage.getItem(K.fails)||'{"n":0,"until":0}');
 const waitSecs=()=>Math.max(0,Math.ceil((failState().until-Date.now())/1000));
 function fail(){const f=failState();f.n++;if(f.n>=3)f.until=Date.now()+Math.min(300,5*2**(f.n-3))*1000;localStorage.setItem(K.fails,JSON.stringify(f))}
 const okFails=()=>localStorage.removeItem(K.fails);
 
-/* ========== Lock screens ========== */
+/* ===== Lock screens ===== */
 const isApp=()=>window.navigator.standalone||matchMedia('(display-mode: standalone)').matches;
-function installBanner(){return isApp()?'':`<div class="banner blue">For the full app: tap <b>Share</b> \u2192 <b>Add to Home Screen</b>, then always open it from that icon. Safari and the home-screen app keep separate records.</div>`}
-function renderLock(mode){tabs.hidden=true;const has=!!localStorage.getItem(K.meta);mode=mode||(has?'unlock':'welcome');
- if(mode==='welcome')app.innerHTML=`<div class="lock"><h1>Invoices</h1>${installBanner()}<p class="sub">Your records are stored only on this phone and encrypted with your PIN. Choose a PIN of at least 6 digits.</p>
-  <input id="p1" class="pinin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="New PIN">
-  <input id="p2" class="pinin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Confirm PIN">
+const isPhone=()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+function installBanner(){return isApp()||!isPhone()?'':`<div class="banner info">For the full app: tap <b>Share</b> \u2192 <b>Add to Home Screen</b>, then always open it from that icon. Safari and the home-screen app keep separate records.</div>`}
+function lockShell(inner){document.body.classList.add('locked');nav.hidden=true;closeModal();app.innerHTML=`<div class="lockwrap"><div class="lockcard"><div class="logo" style="margin-bottom:18px">${I.lock}</div>${inner}</div></div>`}
+function renderLock(mode){applyTheme();const has=!!localStorage.getItem(K.meta);mode=mode||(has?'unlock':'welcome');
+ if(mode==='welcome')lockShell(`<h1>Welcome</h1>${installBanner()}<p class="mu">Your records stay on this device, encrypted with your PIN. Choose a PIN of at least 6 digits.</p>
+  <input id="p1" class="inp pinin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="New PIN">
+  <input id="p2" class="inp pinin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Confirm PIN">
   <div class="err" id="er"></div><button class="btn full" onclick="doSetup()">Create PIN</button>
-  <button class="link" style="margin-top:12px" onclick="restorePick()">Restore from a backup file</button></div>`;
- else if(mode==='unlock'){app.innerHTML=`<div class="lock"><h1>Invoices</h1><p class="sub">Enter your PIN to unlock your records.</p>
-  <input id="pin" class="pinin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN" onkeydown="if(event.key==='Enter')doUnlock()">
+  <button class="link" style="margin-top:12px" onclick="restorePick()">Restore from a backup file</button>`);
+ else if(mode==='unlock'){lockShell(`<h1>Invoices</h1><p class="mu">Enter your PIN to unlock your records.</p>
+  <input id="pin" class="inp pinin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN" onkeydown="if(event.key==='Enter')doUnlock()">
   <div class="err" id="er">${waitSecs()?`Too many attempts. Wait ${waitSecs()}s.`:''}</div><button class="btn full" onclick="doUnlock()">Unlock</button>
-  <button class="link" style="margin-top:12px" onclick="renderLock('recover')">Forgot PIN? Use recovery code</button></div>`;setTimeout(()=>$('#pin')&&$('#pin').focus(),300)}
- else app.innerHTML=`<div class="lock"><h1>Reset PIN</h1><p class="sub">Enter your recovery code, then choose a new PIN.</p>
-  <input id="rc" class="pinin rec" autocapitalize="characters" autocomplete="off" placeholder="XXXXX-XXXXX-XXXXX-XXXXX">
-  <input id="p1" class="pinin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="New PIN">
-  <input id="p2" class="pinin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Confirm new PIN">
+  <button class="link" style="margin-top:12px" onclick="renderLock('recover')">Forgot PIN? Use recovery code</button>`);setTimeout(()=>$('#pin')&&$('#pin').focus(),300)}
+ else lockShell(`<h1>Reset PIN</h1><p class="mu">Enter your recovery code, then choose a new PIN.</p>
+  <input id="rc" class="inp pinin rec" autocapitalize="characters" autocomplete="off" placeholder="XXXXX-XXXXX-XXXXX-XXXXX">
+  <input id="p1" class="inp pinin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="New PIN">
+  <input id="p2" class="inp pinin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Confirm new PIN">
   <div class="err" id="er"></div><button class="btn full" onclick="doRecover()">Reset PIN</button>
-  <button class="link" style="margin-top:12px" onclick="renderLock('unlock')">Back</button></div>`}
+  <button class="link" style="margin-top:12px" onclick="renderLock('unlock')">Back</button>`)}
 async function doSetup(){const a=$('#p1').value,b=$('#p2').value,er=$('#er');
  if(!/^\d{6,}$/.test(a))return er.textContent='PIN must be at least 6 digits.';
  if(a!==b)return er.textContent='PINs do not match.';
@@ -177,10 +285,10 @@ async function doSetup(){const a=$('#p1').value,b=$('#p2').value,er=$('#er');
  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
  showRecovery(rec)}
 function showRecovery(rec){const body=encodeURIComponent(`Invoices app recovery code:\n\n${rec}\n\nKeep this safe. It unlocks your records if you forget your PIN.`);
- app.innerHTML=`<div class="lock"><h1>Recovery code</h1><p class="sub">If you forget your PIN, this code is the only way back into your records. Nobody else can recover them.</p><div class="code">${rec}</div>
- <a class="btn sec full" style="display:block;text-align:center;text-decoration:none;margin-bottom:10px" href="mailto:?subject=${encodeURIComponent('Invoices app recovery code')}&body=${body}">Email it to myself</a>
- <label class="sub" style="display:flex;gap:8px;align-items:center;margin:10px 0"><input type="checkbox" id="ok" style="width:20px;height:20px"> I've saved my recovery code</label>
- <button class="btn full" onclick="if($('#ok').checked){go('settings')}else alert('Please save your recovery code first.')">Continue</button></div>`}
+ lockShell(`<h1>Recovery code</h1><p class="mu">If you forget your PIN, this code is the only way back into your records. Nobody else can recover them.</p><div class="code">${rec}</div>
+ <a class="btn sec full" style="margin-bottom:10px" href="mailto:?subject=${encodeURIComponent('Invoices app recovery code')}&body=${body}">Email it to myself</a>
+ <div class="tg" style="padding:12px 0;border:0"><span>I've saved my recovery code</span><label class="sw"><input type="checkbox" id="ok"><span></span></label></div>
+ <button class="btn full" onclick="if($('#ok').checked){go('settings')}else toast('Save your recovery code first')">Continue</button>`)}
 async function doUnlock(){const er=$('#er'),w=waitSecs();if(w)return er.textContent=`Too many attempts. Wait ${w}s.`;
  const pin=$('#pin').value;er.textContent='Unlocking\u2026';
  try{const m=getMeta();const raw=await aesDec(await deriveKey(pin,unb64(m.saltPin)),m.wPin);await openWith(raw);okFails();addLog('Unlocked');await save();go('list')}
@@ -192,35 +300,40 @@ async function doRecover(){const er=$('#er'),w=waitSecs();if(w)return er.textCon
  try{const m=getMeta();const raw=await aesDec(await deriveKey(normRec(rec),unb64(m.saltRec)),m.wRec);await wrapPin(m,raw,a);localStorage.setItem(K.meta,JSON.stringify(m));await openWith(raw);okFails();addLog('PIN reset with recovery code');await save();go('list')}
  catch(e){fail();er.textContent='Recovery code not recognised.'}}
 async function changePin(){const cur=$('#cp0').value,n1=$('#cp1').value,n2=$('#cp2').value;
- if(!/^\d{6,}$/.test(n1))return alert('New PIN must be at least 6 digits.');if(n1!==n2)return alert('New PINs do not match.');
- try{const m=getMeta();const raw=await aesDec(await deriveKey(cur,unb64(m.saltPin)),m.wPin);await wrapPin(m,raw,n1);localStorage.setItem(K.meta,JSON.stringify(m));addLog('PIN changed');await save();alert('PIN changed.');render()}
- catch(e){alert('Current PIN is wrong.')}}
-function lock(){KEY=null;S=null;E=null;VI=null;view='list';renderLock()}
+ if(!/^\d{6,}$/.test(n1))return toast('New PIN must be at least 6 digits');if(n1!==n2)return toast('New PINs do not match');
+ try{const m=getMeta();const raw=await aesDec(await deriveKey(cur,unb64(m.saltPin)),m.wPin);await wrapPin(m,raw,n1);localStorage.setItem(K.meta,JSON.stringify(m));addLog('PIN changed');await save();toast('PIN changed');render()}
+ catch(e){toast('Current PIN is wrong')}}
+function lock(){KEY=null;S=null;E=null;VI=null;EM=null;view='list';renderLock()}
 let hiddenAt=0,idleT=null;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)hiddenAt=Date.now();else if(KEY&&Date.now()-hiddenAt>30000)lock()});
 function resetIdle(){clearTimeout(idleT);if(KEY)idleT=setTimeout(lock,5*60000)}
 ['touchstart','keydown','click'].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true}));
 
-/* ========== Backup & restore (file stays encrypted) ========== */
-async function backup(){const b=JSON.stringify({app:'invoices',v:1,at:new Date().toISOString(),meta:getMeta(),data:JSON.parse(localStorage.getItem(K.data))});
- const name=`invoices-backup-${today()}.json`,file=new File([b],name,{type:'application/json'});
- const done=async()=>{S.settings.lastBackup=today();addLog('Backup created');await save();render()};
- if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});await done()}catch(e){}}
- else{const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;a.click();await done()}}
+/* ===== Files: download, backup, restore ===== */
+function download(file){const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+async function backup(){const b=JSON.stringify({app:'invoices',v:2,at:new Date().toISOString(),meta:getMeta(),data:JSON.parse(localStorage.getItem(K.data))});
+ const file=new File([b],`invoices-backup-${today()}.json`,{type:'application/json'});
+ const done=async msg=>{S.settings.lastBackup=today();addLog('Backup created');await save();toast(msg);render()};
+ if(isPhone()&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:file.name});return done('Backup saved')}catch(e){if(e.name==='AbortError')return}}
+ download(file);await done('Backup file downloaded')}
 function restorePick(){const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
  inp.onchange=async()=>{try{const o=JSON.parse(await inp.files[0].text());if(o.app!=='invoices'||!o.meta||!o.data)throw 0;
-  if(!confirm('Replace ALL records on this phone with this backup? You will need the PIN (or recovery code) that was in use when the backup was made.'))return;
-  localStorage.setItem(K.meta,JSON.stringify(o.meta));localStorage.setItem(K.data,JSON.stringify(o.data));okFails();lock()}
-  catch(e){alert('That file is not a valid backup.')}};inp.click()}
+  if(!await ask('Restore backup?','This replaces <b>all</b> records on this device. You will need the PIN (or recovery code) that was in use when the backup was made.','Restore',true))return;
+  localStorage.setItem(K.meta,JSON.stringify(o.meta));localStorage.setItem(K.data,JSON.stringify(o.data));okFails();lock();toast('Backup restored. Enter its PIN.')}
+  catch(e){toast('That file is not a valid backup')}};inp.click()}
 
-/* ========== Invoice logic ========== */
+/* ===== Invoice logic ===== */
 const live=()=>S.invoices.filter(i=>!i.deleted);
 const find=id=>S.invoices.find(i=>i.id===id);
-const client=i=>(i.locked&&i.clientSnap)||S.clients.find(c=>c.id===i.clientId)||i.clientSnap||{name:'(no client)',abn:'',address:''};
+const worked=i=>i.days.filter(d=>d.worked);
+const client=i=>(i.locked&&i.clientSnap)||S.clients.find(c=>c.id===i.clientId)||i.clientSnap||{name:'(no client)',abn:'',address:'',email:''};
+const BIZ=['name','abn','address','phone','email','bank','accName','bsb','accNo','terms'];
+function from(i){const o=Object.assign({},S.settings);if(i.locked&&i.fromSnap)BIZ.forEach(k=>{if(i.fromSnap[k]!==undefined)o[k]=i.fromSnap[k]});return o}
+const dueDate=i=>addDays(i.date,+from(i).terms||7);
 const hrs=d=>{if(!d.worked)return 0;const[a,b]=d.start.split(':').map(Number),[c,e]=d.finish.split(':').map(Number);const m=Math.max(0,(c*60+e)-(a*60+b)-(+d.breakMin||0));return Math.round(m/60*100)/100};
 const amt=d=>Math.round(hrs(d)*(+d.rate||0)*100)/100;
 function totals(i){const sub=i.days.reduce((s,d)=>s+amt(d),0);const gst=i.gst?Math.round(sub*10)/100:0;return{hours:Math.round(i.days.reduce((s,d)=>s+hrs(d),0)*100)/100,sub,gst,total:sub+gst}}
-function stat(i){if(i.status==='paid')return['Paid','p-paid'];if(i.status==='sent')return today()>addDays(i.date,+S.settings.terms||7)?['Overdue','p-over']:['Unpaid','p-sent'];return['Draft','p-draft']}
+function stat(i){if(i.status==='paid')return['Paid','p-paid'];if(i.status==='sent')return today()>dueDate(i)?['Overdue','p-over']:['Unpaid','p-sent'];return['Draft','p-draft']}
 function makeDays(wk,tpl){const st=S.settings;return DAYS.map((n,k)=>{const date=addDays(wk,k),t=tpl&&tpl.days[k];return{date,worked:t?t.worked:(k<5&&!holName(date)),start:t?t.start:st.start,finish:t?t.finish:st.finish,breakMin:t?t.breakMin:st.breakMin,rate:t?t.rate:st.rate}})}
 function nextNumber(date,id){const base='INV-'+date.replace(/-/g,'');let n=base,k=2;while(live().some(i=>i.number===n&&i.id!==id))n=base+'-'+(k++);return n}
 function newBase(wk){const st=S.settings,date=addDays(wk,6);const i={id:uid(),weekStart:wk,date,number:'',clientId:(S.clients[0]||{}).id||'',status:'draft',locked:false,gst:!!st.gst,service:st.service,days:makeDays(wk),history:[],created:Date.now()};i.number=nextNumber(date,i.id);return i}
@@ -230,15 +343,19 @@ function diff(a,b){const c=[],f=(n,x,y)=>{if(String(x??'')!==String(y??''))c.pus
  f('Client',cn(a.clientId),cn(b.clientId));f('Week',a.weekStart,b.weekStart);f('Invoice date',a.date,b.date);f('Number',a.number,b.number);f('Service',a.service,b.service);f('Status',a.status,b.status);f('Paid on',a.paidDate,b.paidDate);
  b.days.forEach((d,k)=>{const o=a.days[k]||{},n=DAYS[k].slice(0,3);if(!!o.worked!==!!d.worked)c.push(`${n}: ${d.worked?'added':'removed'}`);else if(d.worked){f(n+' start',o.start,d.start);f(n+' finish',o.finish,d.finish);f(n+' break',o.breakMin,d.breakMin);f(n+' rate',o.rate,d.rate)}});
  const ta=totals(a).total,tb=totals(b).total;if(ta!==tb)c.push(`Total: $${money(ta)} \u2192 $${money(tb)}`);return c}
+function fillVars(s,i){const c=client(i),st=from(i),t=totals(i);const v={client:c.name||'',number:i.number,amount:money(t.total),period:period(i),duedate:fmtD(dueDate(i)),hours:t.hours,myname:st.name||'',myphone:st.phone||''};return String(s||'').replace(/\{(\w+)\}/g,(m,k)=>k in v?v[k]:m)}
 
-/* ========== Navigation ========== */
-const ICON={inv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>',set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>'};
+/* ===== Navigation ===== */
 function go(v){view=v;render();window.scrollTo(0,0)}
-function render(){if(!KEY)return renderLock();const t=['list','settings','log'].includes(view);tabs.hidden=!t;
- if(t)tabs.innerHTML=`<button class="${view==='list'?'on':''}" onclick="go('list')">${ICON.inv}Invoices</button><button class="${view!=='list'?'on':''}" onclick="go('settings')">${ICON.set}Settings</button>`;
+function render(){if(!KEY)return renderLock();document.body.classList.remove('locked');applyTheme();renderNav();
  ({list:renderList,edit:renderEdit,view:renderView,settings:renderSettings,log:renderLog})[view]()}
+function renderNav(){const s=S.settings;nav.hidden=false;nav.className='nav'+(['edit','view'].includes(view)?' hidemob':'');
+ nav.innerHTML=`<div class="brand"><div class="logo">${esc(initials(s.name))}</div><div style="min-width:0"><b>Invoices</b><div class="mu small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.name||'Set up your business')}</div></div></div>
+ <button class="nb ${['list','edit','view'].includes(view)?'on':''}" onclick="go('list')">${I.inv}Invoices</button>
+ <button class="nb ${['settings','log'].includes(view)?'on':''}" onclick="go('settings')">${I.set}Settings</button>
+ <div class="spacer"></div><button class="lockb" onclick="lock()">${I.lock}Lock app</button>`}
 
-/* ========== Invoice list ========== */
+/* ===== Invoice list ===== */
 function renderList(){const cur=fy(today());if(curFY==null)curFY=cur;
  const fys=[...new Set([cur,...live().map(i=>fy(i.date))])].sort((a,b)=>b-a);
  const list=live().filter(i=>fy(i.date)===curFY).sort((a,b)=>b.date.localeCompare(a.date)||b.created-a.created);
@@ -246,162 +363,222 @@ function renderList(){const cur=fy(today());if(curFY==null)curFY=cur;
  const issued=sum(i=>i.status!=='draft'),paid=sum(i=>i.status==='paid'),owing=sum(i=>i.status==='sent'),month=sum(i=>i.status!=='draft'&&i.date.startsWith(mk));
  const groups={};list.forEach(i=>(groups[i.date.slice(0,7)]=groups[i.date.slice(0,7)]||[]).push(i));
  const old=!S.settings.lastBackup||S.settings.lastBackup<addDays(today(),-7);
- let h=`<div class="wrap"><div class="top"><h1>Invoices</h1><button class="link" onclick="lock()">Lock</button></div>
- <select onchange="curFY=+this.value;render()" style="font:inherit;font-weight:600;border:0;background:#e9e9ee;border-radius:10px;padding:8px 12px;color:var(--tx)">${fys.map(y=>`<option value="${y}" ${y===curFY?'selected':''}>${fyLabel(y)}</option>`).join('')}</select>
+ let h=`<div class="wrap"><div class="top"><h1>Invoices</h1><div style="display:flex;gap:10px;align-items:center"><select class="fy" onchange="curFY=+this.value;render()">${fys.map(y=>`<option value="${y}" ${y===curFY?'selected':''}>${fyLabel(y)}</option>`).join('')}</select><button class="link mlock" onclick="lock()">Lock</button></div></div>
  ${installBanner()}${old&&live().length?`<div class="banner">No backup in the last 7 days. <button class="link" style="padding:0" onclick="backup()">Back up now</button></div>`:''}
- <div class="stats"><div class="stat"><span>Invoiced this FY</span><b>$${money(issued)}</b></div><div class="stat"><span>This month</span><b>$${money(month)}</b></div>
- <div class="stat"><span>Paid</span><b style="color:var(--gr)">$${money(paid)}</b></div><div class="stat"><span>Owing</span><b style="color:${owing?'var(--rd)':'inherit'}">$${money(owing)}</b></div></div>`;
+ <div class="stats"><div class="stat"><div class="mu small">Invoiced this FY</div><b>$${money(issued)}</b></div><div class="stat"><div class="mu small">This month</div><b>$${money(month)}</b></div>
+ <div class="stat"><div class="mu small">Paid</div><b style="color:var(--gr)">$${money(paid)}</b></div><div class="stat"><div class="mu small">Owing</div><b style="color:${owing?'var(--rd)':'inherit'}">$${money(owing)}</b></div></div>`;
  if(!list.length)h+=`<div class="empty">No invoices in ${fyLabel(curFY)} yet.<br>Tap <b>+ New invoice</b> to create one.</div>`;
  Object.keys(groups).sort().reverse().forEach(k=>{const g=groups[k],mt=g.filter(i=>i.status!=='draft').reduce((s,i)=>s+totals(i).total,0);
-  h+=`<div class="mhead"><span>${D(k+'-01').toLocaleDateString('en-AU',{month:'long',year:'numeric'})}</span><span>$${money(mt)}</span></div><div class="card">${g.map(rowHTML).join('')}</div>`});
- if(list.length)h+=`<p class="sub" style="text-align:center;margin-top:18px">Swipe left to share, copy or delete. Swipe right to mark paid.</p>`;
+  h+=`<div class="mhead"><span class="cap">${D(k+'-01').toLocaleDateString('en-AU',{month:'long',year:'numeric'})}</span><span class="cap">$${money(mt)}</span></div><div class="card">${g.map(rowHTML).join('')}</div>`});
+ if(list.length)h+=`<p class="mu small swipehint" style="text-align:center;margin-top:18px">Swipe left to email, copy or delete. Swipe right to mark paid.</p>`;
  app.innerHTML=h+`</div><button class="btn fab" onclick="startNew()">+ New invoice</button>`;
  document.querySelectorAll('.row').forEach(attachSwipe)}
-function rowHTML(i){const[st,cls]=stat(i);return `<div class="row"><div class="acts l"><button class="a-paid" onclick="markPaid('${i.id}')">Paid</button></div>
- <div class="acts r"><button class="a-share" onclick="sharePDF(find('${i.id}'))">Share</button><button class="a-copy" onclick="duplicate('${i.id}')">Copy</button><button class="a-del" onclick="del('${i.id}')">Delete</button></div>
- <div class="rc" onclick="rowTap(this,'${i.id}')"><div><div style="font-weight:600">${esc(client(i).name)}</div><div class="sub">${esc(i.number)} \u00b7 ${shortRange(i)}</div></div><div class="amt">$${money(totals(i).total)}<br><span class="pill ${cls}">${st}</span></div></div></div>`}
+function rowHTML(i){const[st,cls]=stat(i),c=client(i);return `<div class="row"><div class="acts l"><button class="a0" onclick="markPaid('${i.id}')">Paid</button></div>
+ <div class="acts r"><button class="a1" onclick="emailInv('${i.id}')">Email</button><button class="a2" onclick="duplicate('${i.id}')">Copy</button><button class="a3" onclick="del('${i.id}')">Delete</button></div>
+ <div class="rc" onclick="rowTap(this,'${i.id}')"><div class="av">${esc(initials(c.name))}</div><div class="grow"><b>${esc(c.name)}</b><div class="mu small">${esc(i.number)} \u00b7 ${shortRange(i)}</div></div>
+ <div class="hov" onclick="event.stopPropagation()"><button onclick="emailInv('${i.id}')">Email</button><button onclick="sharePDF(find('${i.id}'))">PDF</button><button onclick="duplicate('${i.id}')">Copy</button>${i.status!=='paid'?`<button onclick="markPaid('${i.id}')">Mark paid</button>`:''}<button onclick="del('${i.id}')">Delete</button></div>
+ <div class="amt">$${money(totals(i).total)}<br><span class="pill ${cls}">${st}</span></div></div></div>`}
 function setOff(c,o){c.dataset.off=o;c.style.transform=`translateX(${o}px)`}
 function rowTap(c,id){if(+c.dataset.off){c.style.transition='transform .2s';setOff(c,0);return}openView(id)}
 function attachSwipe(row){const c=row.querySelector('.rc');let x0,y0,dx=0,drag=null,base=0;
  row.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY;drag=null;base=+c.dataset.off||0;dx=base;c.style.transition='none'},{passive:true});
  row.addEventListener('touchmove',e=>{const mx=e.touches[0].clientX-x0,my=e.touches[0].clientY-y0;if(drag===null&&(Math.abs(mx)>8||Math.abs(my)>8))drag=Math.abs(mx)>Math.abs(my);if(!drag)return;dx=Math.max(-216,Math.min(90,base+mx));c.style.transform=`translateX(${dx}px)`},{passive:true});
  row.addEventListener('touchend',()=>{c.style.transition='transform .2s';if(!drag)return;const off=dx<-70?-216:dx>50?90:0;setOff(c,off);if(off)document.querySelectorAll('.rc').forEach(o=>{if(o!==c){o.style.transition='transform .2s';setOff(o,0)}})})}
-async function markPaid(id){const i=find(id);if(i.status==='paid'){alert('Already marked paid.');return render()}
+async function markPaid(id){const i=find(id);if(i.status==='paid'){toast('Already marked paid');return render()}
  const before=clone(i);if(i.status==='draft')snap(i);i.status='paid';i.paidDate=today();i.locked=true;
- i.history.push({ts:Date.now(),changes:diff(before,i)});addLog(`${i.number} marked paid`);await save();render()}
+ i.history.push({ts:Date.now(),changes:diff(before,i)});addLog(`${i.number} marked paid`);await save();toast('Marked as paid');render()}
 function duplicate(id){const s=find(id),wk=addDays(s.weekStart,7),n=newBase(wk);Object.assign(n,{clientId:s.clientId,service:s.service,gst:s.gst});n.days=makeDays(wk,s);E=n;editFrom=null;unlockReason=null;go('edit')}
-async function del(id){const i=find(id);if(i.locked){alert('This invoice is locked because it was sent or paid. Open it and unlock it first if you really need to delete it.');return render()}
- if(!confirm(`Delete ${i.number}? It will be kept under Recently deleted in Settings.`))return render();
- i.deleted=Date.now();addLog(`${i.number} deleted`);await save();E=null;go('list')}
-async function restore(id){const i=find(id);delete i.deleted;if(live().some(x=>x.number===i.number&&x.id!==i.id))i.number=nextNumber(i.date,i.id);addLog(`${i.number} restored`);await save();render()}
-function startNew(){if(!S.settings.name){alert('Add your business details in Settings first.');return go('settings')}
- if(!S.clients.length){alert('Add a client in Settings first.');return go('settings')}
+async function del(id){const i=find(id);
+ if(i.locked){await note('Invoice is locked','It was sent or paid. Open it and tap <b>Unlock to edit</b> first if you really need to delete it.');return render()}
+ if(!await ask('Delete invoice?',`${esc(i.number)} will move to Recently deleted in Settings.`,'Delete',true))return render();
+ i.deleted=Date.now();addLog(`${i.number} deleted`);await save();E=null;toast('Invoice deleted');go('list')}
+async function restore(id){const i=find(id);delete i.deleted;if(live().some(x=>x.number===i.number&&x.id!==i.id))i.number=nextNumber(i.date,i.id);addLog(`${i.number} restored`);await save();toast('Invoice restored');render()}
+async function startNew(){if(!S.settings.name){await note('Add your details first','Fill in your business details in Settings.');return go('settings')}
+ if(!S.clients.length){await note('Add a client first','Add a client in Settings, then create your invoice.');return go('settings')}
  E=newBase(monday(today()));editFrom=null;unlockReason=null;go('edit')}
 function editInv(id){E=clone(find(id));editFrom=id;unlockReason=null;go('edit')}
 
-/* ========== Invoice editor ========== */
+/* ===== Invoice editor ===== */
 function renderEdit(){const i=E,ro=i.locked,dis=ro?'disabled':'',t=totals(i);
- let h=`<div class="wrap"><div class="top"><button class="link" onclick="E=null;go('list')">Cancel</button><b>${editFrom?esc(i.number):'New invoice'}</b><button class="link" onclick="saveEdit()" ${ro?'disabled style="opacity:.3"':''}>Save</button></div>`;
- if(ro)h+=`<div class="banner"><b>Locked.</b> This invoice is ${i.status} and locked so it can't be changed by accident.<br><button class="btn sm sec" style="margin-top:8px" onclick="unlockInv()">Unlock to edit</button></div>`;
- h+=`<h2>Details</h2><div class="card">
- <div class="field"><label>Client</label><select ${dis} onchange="E.clientId=this.value;renderEdit()">${S.clients.map(c=>`<option value="${c.id}" ${c.id===i.clientId?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
- <div class="field"><label>Week starting</label><input type="date" ${dis} value="${i.weekStart}" onchange="setWeek(this.value)"></div>
- <div class="field"><label>Invoice date</label><input type="date" ${dis} value="${i.date}" onchange="setDate(this.value)"></div>
- <div class="field"><label>Invoice no.</label><input ${dis} value="${esc(i.number)}" onchange="E.number=this.value.trim()"></div>
- <div class="field"><label>Service</label><input ${dis} value="${esc(i.service)}" onchange="E.service=this.value"></div></div>`;
- if(!ro)h+=`<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn sm sec" onclick="copyLast()">Copy last week's hours</button><button class="btn sm sec" onclick="E.days=makeDays(E.weekStart);renderEdit()">Reset to defaults</button></div>`;
- h+=`<h2>Hours worked</h2><div class="card">`+i.days.map((d,k)=>{const hol=holName(d.date);return `<div class="day"><div class="dayh"><input type="checkbox" ${dis} ${d.worked?'checked':''} onchange="E.days[${k}].worked=this.checked;renderEdit()">
-  <div style="flex:1"><b>${DAYS[k]}</b> <span class="sub">${fmtD(d.date)}</span> ${hol?`<span class="tag">${esc(hol)}</span>`:''}</div>
-  <div class="amt">${d.worked?`${hrs(d)} h<br><span class="sub">$${money(amt(d))}</span>`:'<span class="sub">Off</span>'}</div></div>
-  ${d.worked?`<div class="dayg"><div><label>Start</label><input type="time" ${dis} value="${d.start}" onchange="setDay(${k},'start',this.value)"></div>
-  <div><label>Finish</label><input type="time" ${dis} value="${d.finish}" onchange="setDay(${k},'finish',this.value)"></div>
-  <div><label>Break min</label><input type="number" inputmode="numeric" ${dis} value="${d.breakMin}" onchange="setDay(${k},'breakMin',+this.value)"></div>
-  <div><label>Rate $/h</label><input type="number" inputmode="decimal" step="0.01" ${dis} value="${d.rate}" onchange="setDay(${k},'rate',+this.value)"></div></div>`:''}</div>`}).join('')+`</div>`;
- h+=`<div class="card" style="margin-top:12px;padding:8px 0"><div class="tot"><span>Hours</span><span>${t.hours}</span></div><div class="tot"><span>Subtotal</span><span>$${money(t.sub)}</span></div><div class="tot"><span>GST</span><span>$${money(t.gst)}</span></div><div class="tot big"><span>Total due</span><span>$${money(t.total)}</span></div></div>`;
- h+=`<h2>Status</h2><div class="seg">${['draft','sent','paid'].map(s=>`<button ${dis} class="${i.status===s?'on':''}" onclick="setStatus('${s}')">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')}</div>`;
- if(i.status==='paid')h+=`<div class="card" style="margin-top:8px"><div class="field"><label>Paid on</label><input type="date" ${dis} value="${i.paidDate||''}" onchange="E.paidDate=this.value"></div></div>`;
- h+=`<p class="sub" style="margin:8px 4px">Sent and paid invoices are locked after saving.</p>`;
- h+=`<div style="display:grid;gap:8px;margin-top:14px"><button class="btn sec full" onclick="VI=E;go('view')">Preview invoice</button><button class="btn sec full" onclick="sharePDF(E)">Share PDF</button>`;
- if(editFrom)h+=`<button class="btn sec full" onclick="duplicate('${editFrom}')">Copy to next week</button>${ro?'':`<button class="btn dan full" onclick="del('${editFrom}')">Delete</button>`}`;
- h+=`</div>`;
- if(i.history&&i.history.length)h+=`<h2>Change history</h2><div class="card">${i.history.slice().reverse().map(x=>`<div class="hist"><b>${new Date(x.ts).toLocaleString('en-AU')}</b>${x.reason?` \u00b7 Reason: ${esc(x.reason)}`:''}<br>${(x.changes||[]).map(esc).join('<br>')||'Saved'}</div>`).join('')}</div>`;
- app.innerHTML=h+'</div>'}
+ let h=`<div class="wrap"><div class="top"><button class="link" onclick="E=null;unlockReason=null;go('list')">Cancel</button><b>${editFrom?esc(i.number):'New invoice'}</b><button class="btn sm" onclick="saveEdit()" ${ro?'disabled':''}>Save</button></div>`;
+ if(ro)h+=`<div class="banner"><b>Locked.</b> This invoice is ${i.status}, so it's protected from accidental changes.<br><button class="btn sm sec" style="margin-top:8px" onclick="unlockInv()">Unlock to edit</button></div>`;
+ h+=`<div class="edgrid"><div><h2 class="sec">Details</h2><div class="card"><div class="fgrid two">
+ <div class="fld"><label>Client</label><select class="inp" ${dis} onchange="E.clientId=this.value;renderEdit()">${S.clients.map(c=>`<option value="${c.id}" ${c.id===i.clientId?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+ <div class="fld"><label>Invoice no.</label><input class="inp" ${dis} value="${esc(i.number)}" onchange="E.number=this.value.trim()"></div>
+ <div class="fld"><label>Week starting (Monday)</label><input class="inp" type="date" ${dis} value="${i.weekStart}" onchange="setWeek(this.value)"></div>
+ <div class="fld"><label>Invoice date</label><input class="inp" type="date" ${dis} value="${i.date}" onchange="setDate(this.value)"></div>
+ <div class="fld" style="grid-column:1/-1"><label>Service</label><input class="inp" ${dis} value="${esc(i.service)}" onchange="E.service=this.value"></div></div></div>`;
+ if(!ro)h+=`<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn sm sec" onclick="copyLast()">Copy last week's hours</button><button class="btn sm sec" onclick="E.days=makeDays(E.weekStart);renderEdit()">Reset to default hours</button></div>`;
+ h+=`<h2 class="sec">Hours worked</h2><div class="card">`+i.days.map((d,k)=>{const hol=holName(d.date);return `<div class="day"><div class="dayh"><label class="sw"><input type="checkbox" ${dis} ${d.worked?'checked':''} onchange="E.days[${k}].worked=this.checked;renderEdit()"><span></span></label>
+  <div class="grow"><b style="display:inline">${DAYS[k]}</b> <span class="mu small">${fmtD(d.date)}</span>${hol?`<span class="tag">${esc(hol)}</span>`:''}</div>
+  <div class="amt">${d.worked?`${hrs(d)} h<br><span class="mu small">$${money(amt(d))}</span>`:'<span class="mu small">Off</span>'}</div></div>
+  ${d.worked?`<div class="dayg"><div><label>Start</label><input class="inp" type="time" ${dis} value="${d.start}" onchange="setDay(${k},'start',this.value)"></div>
+  <div><label>Finish</label><input class="inp" type="time" ${dis} value="${d.finish}" onchange="setDay(${k},'finish',this.value)"></div>
+  <div><label>Break min</label><input class="inp" type="number" inputmode="numeric" ${dis} value="${d.breakMin}" onchange="setDay(${k},'breakMin',+this.value)"></div>
+  <div><label>Rate $/h</label><input class="inp" type="number" inputmode="decimal" step="0.01" ${dis} value="${d.rate}" onchange="setDay(${k},'rate',+this.value)"></div></div>`:''}</div>`}).join('')+`</div></div>`;
+ h+=`<div class="side"><h2 class="sec">Summary</h2><div class="card" style="padding:8px 0"><div class="tot"><span class="mu">Hours</span><span>${t.hours}</span></div><div class="tot"><span class="mu">Subtotal</span><span>$${money(t.sub)}</span></div><div class="tot"><span class="mu">GST</span><span>$${money(t.gst)}</span></div><div class="tot big"><span>Total due</span><span>$${money(t.total)}</span></div></div>
+ <h2 class="sec">Status</h2><div class="seg">${['draft','sent','paid'].map(s=>`<button ${dis} class="${i.status===s?'on':''}" onclick="setStatus('${s}')">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')}</div>
+ ${i.status==='paid'?`<div class="fld" style="margin-top:12px"><label>Paid on</label><input class="inp" type="date" ${dis} value="${i.paidDate||''}" onchange="E.paidDate=this.value"></div>`:''}
+ <p class="mu small" style="margin:8px 4px">Sent and paid invoices lock after saving.</p>
+ <h2 class="sec">Actions</h2><div class="stack"><button class="btn sec full" onclick="VI=E;go('view')">Preview invoice</button><button class="btn sec full" onclick="emailInv(null)">Email to client</button><button class="btn sec full" onclick="sharePDF(E)">Share or download PDF</button>
+ ${editFrom?`<button class="btn sec full" onclick="duplicate('${editFrom}')">Copy to next week</button>${ro?'':`<button class="btn dan full" onclick="del('${editFrom}')">Delete invoice</button>`}`:''}</div>`;
+ if(i.history&&i.history.length)h+=`<h2 class="sec">Change history</h2><div class="card">${i.history.slice().reverse().map(x=>`<div class="hist"><b>${new Date(x.ts).toLocaleString('en-AU')}</b>${x.reason?` \u00b7 Reason: ${esc(x.reason)}`:''}<br>${(x.changes||[]).map(esc).join('<br>')||'Saved'}</div>`).join('')}</div>`;
+ app.innerHTML=h+'</div></div></div>'}
 function setDay(k,f,v){E.days[k][f]=v;renderEdit()}
 function setStatus(s){E.status=s;if(s==='paid'&&!E.paidDate)E.paidDate=today();if(s!=='paid')delete E.paidDate;renderEdit()}
 function setWeek(v){if(!v)return;const wk=monday(v);E.weekStart=wk;E.days=E.days.map((d,k)=>({...d,date:addDays(wk,k)}));E.date=addDays(wk,6);if(E.status==='draft')E.number=nextNumber(E.date,E.id);renderEdit()}
 function setDate(v){if(!v)return;E.date=v;if(E.status==='draft')E.number=nextNumber(v,E.id);renderEdit()}
-function copyLast(){const p=live().filter(x=>x.clientId===E.clientId&&x.id!==E.id&&x.weekStart<E.weekStart).sort((a,b)=>b.weekStart.localeCompare(a.weekStart))[0];if(!p)return alert('No earlier invoice for this client.');E.days=makeDays(E.weekStart,p);renderEdit()}
-function unlockInv(){const r=prompt('Why does this invoice need to change? (Saved in its history.)');if(!r||!r.trim())return;unlockReason=r.trim();E.locked=false;renderEdit()}
+function copyLast(){const p=live().filter(x=>x.clientId===E.clientId&&x.id!==E.id&&x.weekStart<E.weekStart).sort((a,b)=>b.weekStart.localeCompare(a.weekStart))[0];if(!p)return toast('No earlier invoice for this client');E.days=makeDays(E.weekStart,p);renderEdit();toast("Copied last week's hours")}
+async function unlockInv(){const r=await askText('Unlock invoice','Why does this invoice need to change? This is saved in its history.');if(!r||!r.trim())return;unlockReason=r.trim();E.locked=false;renderEdit()}
 async function saveEdit(){const i=E;
- if(!i.clientId)return alert('Choose a client.');
- if(!i.number)return alert('Enter an invoice number.');
- if(!i.days.some(d=>d.worked&&hrs(d)>0))return alert('No hours entered.');
- if(live().some(x=>x.number===i.number&&x.id!==i.id))return alert(`Invoice number ${i.number} is already used.`);
- const long=i.days.filter(d=>d.worked&&hrs(d)>12);if(long.length&&!confirm(`${long.length} day(s) over 12 hours. Save anyway?`))return;
- const clash=live().find(x=>x.id!==i.id&&x.clientId===i.clientId&&x.weekStart===i.weekStart);if(clash&&!confirm(`${clash.number} already covers this week for this client. Save anyway?`))return;
+ if(!i.clientId)return toast('Choose a client');
+ if(!i.number)return toast('Enter an invoice number');
+ if(!i.days.some(d=>d.worked&&hrs(d)>0))return toast('No hours entered');
+ if(live().some(x=>x.number===i.number&&x.id!==i.id))return note('Number already used',`Invoice number ${esc(i.number)} is already used. Change it before saving.`);
+ const long=i.days.filter(d=>d.worked&&hrs(d)>12);if(long.length&&!await ask('Long days',`${long.length} day(s) are over 12 hours. Save anyway?`,'Save'))return;
+ const clash=live().find(x=>x.id!==i.id&&x.clientId===i.clientId&&x.weekStart===i.weekStart);if(clash&&!await ask('Week already invoiced',`${esc(clash.number)} already covers this week for this client. Save anyway?`,'Save'))return;
  const old=editFrom?find(editFrom):null;
  if(i.status!=='draft'&&(!old||old.status==='draft'||old.clientId!==i.clientId||unlockReason))snap(i);
  i.locked=i.status!=='draft';
  if(old){const ch=diff(old,i);i.history=old.history||[];if(ch.length||unlockReason)i.history=[...i.history,{ts:Date.now(),changes:ch,reason:unlockReason||undefined}];
   Object.assign(old,clone(i));addLog(`${i.number} edited${unlockReason?` (unlocked: ${unlockReason})`:''}`)}
  else{i.history=[{ts:Date.now(),changes:['Created']}];S.invoices.push(clone(i));addLog(`${i.number} created`)}
- unlockReason=null;curFY=fy(i.date);await save();E=null;editFrom=null;go('list')}
+ unlockReason=null;curFY=fy(i.date);await save();E=null;editFrom=null;toast('Invoice saved');go('list')}
 
-/* ========== Invoice view (reference layout) ========== */
-function openView(id){VI=find(id);go('view')}
-function renderView(){const i=VI,st=(i.locked&&i.fromSnap)||S.settings,c=client(i),t=totals(i),w=i.days.filter(d=>d.worked),bt=breakText(w);
- const back=E?`<button class="link" onclick="go('edit')">\u2039 Back</button>`:`<button class="link" onclick="go('list')">\u2039 Back</button>`;
- app.innerHTML=`<div class="wrap"><div class="top">${back}<span></span>${E?'<span></span>':`<button class="link" onclick="editInv('${i.id}')">${i.locked?'Details':'Edit'}</button>`}</div>
- <div class="paper"><h3>${i.gst?'Tax Invoice':'Invoice'}</h3><div class="sub">${fmtD(i.date)}</div>
- <p><b>Amount due: $${money(t.total)}</b> for ${esc(i.service.toLowerCase())}, ${rangeText(w)}.</p>
- <table><tr><th>From (Contractor)</th><th>Bill To (Client)</th></tr><tr><td><b>${esc(st.name)}</b></td><td><b>${esc(c.name)}</b></td></tr>
- <tr><td>${st.abn?'ABN '+esc(st.abn):''}</td><td>${c.abn?'ABN '+esc(c.abn):''}</td></tr><tr><td>${esc(st.address)}</td><td>${esc(c.address)}</td></tr><tr><td>${esc(st.phone)}</td><td></td></tr><tr><td>${esc(st.email)}</td><td></td></tr></table>
- <div class="pt">Invoice Details</div><table><tr><th>Invoice No.</th><th>Date</th><th>Pay Period</th><th>Frequency</th></tr><tr><td>${esc(i.number)}</td><td>${fmtD(i.date)}</td><td>${period(i)}</td><td>Weekly</td></tr></table>
- <div class="pt">Hours Worked</div><table><tr><th>Day</th><th>Date</th><th>Start</th><th>Finish</th><th class="num">Hrs</th><th class="num">Rate</th><th class="num">Amount</th></tr>
- ${w.map(d=>`<tr><td>${dayName(d.date).slice(0,3)}</td><td>${D(d.date).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}</td><td>${t12(d.start)}</td><td>${t12(d.finish)}</td><td class="num">${hrs(d).toFixed(1)}</td><td class="num">${money(d.rate)}</td><td class="num">${money(amt(d))}</td></tr>`).join('')}
- <tr><td><b>Total</b></td><td></td><td></td><td></td><td class="num"><b>${t.hours.toFixed(1)}</b></td><td></td><td class="num"><b>${money(t.sub)}</b></td></tr></table>
- ${bt?`<p class="sub">${bt}</p>`:''}
- <table style="width:60%;margin-left:40%"><tr><td>Subtotal</td><td class="num">${money(t.sub)}</td></tr><tr><td>GST</td><td class="num">${money(t.gst)}</td></tr><tr><td><b>Total Due</b></td><td class="num"><b>${money(t.total)}</b></td></tr></table>
- <div class="pt">Payment Details</div><p>Please pay by bank transfer within ${+st.terms||7} days, using the invoice number as the reference.</p>
- <table><tr><th>Bank</th><th>Account Name</th><th>BSB</th><th>Account No.</th></tr><tr><td>${esc(st.bank)}</td><td>${esc(st.accName)}</td><td>${esc(st.bsb)}</td><td>${esc(st.accNo)}</td></tr></table>
- ${i.gst?'':'<p>No GST has been charged \u2014 the supplier is not registered for GST.</p>'}<p>Thank you for your business.</p></div>
- <button class="btn full" style="margin-top:14px" onclick="sharePDF(VI)">Share PDF</button></div>`}
+/* ===== Invoice document ===== */
+function openView(id){VI=find(id);E=null;go('view')}
+function renderView(){const i=VI;
+ app.innerHTML=`<div class="wrap"><div class="top"><button class="link" onclick="${E?"go('edit')":"go('list')"}">\u2039 Back</button><div style="display:flex;gap:8px">${E?'':`<button class="btn sm sec" onclick="editInv('${i.id}')">${i.locked?'Details':'Edit'}</button>`}<button class="btn sm sec" onclick="emailInv(${E?'null':`'${i.id}'`})">Email</button><button class="btn sm" onclick="sharePDF(VI)">PDF</button></div></div>${invHTML(i)}</div>`}
+function invHTML(i){const st=from(i),c=client(i),t=totals(i),w=worked(i),bt=breakText(w);
+ const meta=[['Invoice No.',i.number],['Date',fmtD(i.date)],['Pay period',period(i)]];if(st.showTerms)meta.push(['Due date',fmtD(dueDate(i))]);
+ const notes=[!i.gst&&st.showGstNote?'No GST has been charged. The supplier is not registered for GST.':'',st.showFooter&&st.footer?st.footer:''].filter(Boolean);
+ return `<div class="paper"><div class="ih"><div class="biz"><b>${esc(st.name)}</b><div>${[st.abn&&'ABN '+st.abn,st.address,st.phone,st.email].filter(Boolean).map(esc).join('<br>')}</div></div>
+ <div class="ttl"><div class="h">${i.gst?'TAX INVOICE':'INVOICE'}</div><table class="meta">${meta.map(m=>`<tr><td>${m[0]}</td><td>${esc(m[1])}</td></tr>`).join('')}</table></div></div>
+ <div class="ib"><div class="bt"><div class="cap">Bill to</div><b>${esc(c.name)}</b><div>${[c.abn&&'ABN '+c.abn,c.address].filter(Boolean).map(esc).join('<br>')}</div></div>
+ <div class="due"><div class="cap" style="color:var(--ac)">Amount due</div><b>$${money(t.total)}</b>${st.showTerms?`<div class="mu small">Due ${fmtD(dueDate(i))}</div>`:''}</div></div>
+ <div class="svc">${esc(i.service)} &middot; ${esc(rangeText(w))}</div>
+ <table class="ht"><tr><th>Day</th><th>Start</th><th>Finish</th><th class="n">Hours</th><th class="n">Rate</th><th class="n">Amount</th></tr>
+ ${w.map(d=>`<tr><td>${dayShort(d.date)}</td><td>${t12(d.start)}</td><td>${t12(d.finish)}</td><td class="n">${hrs(d).toFixed(1)}</td><td class="n">$${money(d.rate)}</td><td class="n">$${money(amt(d))}</td></tr>`).join('')}</table>
+ ${st.showBreak&&bt?`<div class="bn">${bt}</div>`:''}
+ <div class="tt"><div><span class="mu">Total hours</span><span>${t.hours.toFixed(1)}</span></div><div><span class="mu">Subtotal</span><span>$${money(t.sub)}</span></div><div><span class="mu">GST</span><span>$${money(t.gst)}</span></div><div class="g"><span>Total due</span><span>$${money(t.total)}</span></div></div>
+ <div class="pay"><div class="cap">Payment details</div><div class="pg"><span>Bank</span><b>${esc(st.bank)}</b><span>Account name</span><b>${esc(st.accName)}</b><span>BSB</span><b>${esc(st.bsb)}</b><span>Account no.</span><b>${esc(st.accNo)}</b><span>Reference</span><b>${esc(i.number)}</b></div></div>
+ ${notes.length?`<div class="fn">${notes.map(esc).join('<br>')}</div>`:''}</div>`}
 
-/* ========== PDF ========== */
+/* ===== PDF ===== */
 function buildPDF(i){const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});
- const st=(i.locked&&i.fromSnap)||S.settings,c=client(i),t=totals(i),w=i.days.filter(d=>d.worked),L=15,R=195,blue=[31,78,121],grey=[110,110,115];
- const common={theme:'grid',margin:{left:L,right:L},styles:{fontSize:9.5,cellPadding:2,lineColor:[229,229,234],lineWidth:0.2,textColor:20},headStyles:{fillColor:blue,textColor:255,fontStyle:'bold'}};
- doc.setFont('helvetica','bold');doc.setFontSize(22);doc.text(i.gst?'Tax Invoice':'Invoice',L,22);
- doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(...grey);doc.text(fmtD(i.date),L,29);doc.setTextColor(0);
- doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text(`Amount due: $${money(t.total)}`,L,39);
- doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`for ${i.service.toLowerCase()}, ${rangeText(w)}.`,L,45,{maxWidth:R-L});
- doc.autoTable({...common,startY:51,head:[['From (Contractor)','Bill To (Client)']],body:[[st.name,c.name],[st.abn?'ABN '+st.abn:'',c.abn?'ABN '+c.abn:''],[st.address||'',c.address||''],[st.phone||'',''],[st.email||'','']],didParseCell:d=>{if(d.section==='body'&&d.row.index===0)d.cell.styles.fontStyle='bold'}});
- let y=doc.lastAutoTable.finalY+9;const head=txt=>{doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text(txt,L,y);y+=3};
- head('Invoice Details');
- doc.autoTable({...common,startY:y,head:[['Invoice No.','Invoice Date','Pay Period','Pay Frequency','Service']],body:[[i.number,fmtD(i.date),period(i),'Weekly',i.service]]});
- y=doc.lastAutoTable.finalY+9;head('Hours Worked');
- doc.autoTable({...common,startY:y,head:[['Day','Date','Start','Finish','Hours','Rate ($/hr)','Amount ($)']],body:w.map(d=>[dayName(d.date),fmtD(d.date),t12(d.start),t12(d.finish),hrs(d).toFixed(1),money(d.rate),money(amt(d))]),foot:[['Total','','','',t.hours.toFixed(1),'',money(t.sub)]],footStyles:{fillColor:[242,242,247],textColor:20,fontStyle:'bold'},columnStyles:{4:{halign:'right'},5:{halign:'right'},6:{halign:'right'}}});
- y=doc.lastAutoTable.finalY+6;const bt=breakText(w);if(bt){doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...grey);doc.text(bt,L,y);doc.setTextColor(0);y+=4}
- doc.autoTable({...common,startY:y,margin:{left:115,right:L},head:[['','Amount ($)']],body:[['Subtotal',money(t.sub)],['GST',money(t.gst)]],foot:[['Total Due',money(t.total)]],footStyles:{fillColor:[242,242,247],textColor:20,fontStyle:'bold'},columnStyles:{1:{halign:'right'}}});
- y=doc.lastAutoTable.finalY+9;head('Payment Details');doc.setFont('helvetica','normal');doc.setFontSize(10);y+=3;
- doc.text(`Please pay by bank transfer within ${+st.terms||7} days, using the invoice number as the reference.`,L,y,{maxWidth:R-L});y+=4;
- doc.autoTable({...common,startY:y,head:[['Bank','Account Name','BSB','Account No.']],body:[[st.bank||'',st.accName||'',st.bsb||'',st.accNo||'']]});
- y=doc.lastAutoTable.finalY+8;doc.setFontSize(10);if(!i.gst){doc.text('No GST has been charged - the supplier is not registered for GST.',L,y);y+=6}
- doc.text('Thank you for your business.',L,y);return doc}
-async function sharePDF(i){if(!window.jspdf){alert('The PDF tool could not load. Check your internet connection and try again.');return}
- const blob=buildPDF(i).output('blob'),name=`${i.number||'invoice'}.pdf`,file=new File([blob],name,{type:'application/pdf'});
- if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name})}catch(e){}}
- else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()}
- if(view==='list')render()}
+ const st=from(i),c=client(i),t=totals(i),w=worked(i),A=hexRgb(accHex()),G=[107,114,128],L=18,R=192;
+ doc.setFillColor(...A);doc.rect(0,0,210,5,'F');
+ let y=22;
+ doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(22);doc.text(st.name||'',L,y);
+ const lines=[st.abn&&'ABN '+st.abn,st.address,st.phone,st.email].filter(Boolean);
+ doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...G);lines.forEach((l,k)=>doc.text(String(l),L,y+6+k*4.6));
+ doc.setFont('helvetica','bold');doc.setFontSize(24);doc.setTextColor(...A);doc.text(i.gst?'TAX INVOICE':'INVOICE',R,y+1,{align:'right'});
+ const meta=[['Invoice No.',i.number],['Date',fmtD(i.date)],['Pay period',period(i)]];if(st.showTerms)meta.push(['Due date',fmtD(dueDate(i))]);
+ doc.setFontSize(9);meta.forEach((m,k)=>{const yy=y+9+k*5;doc.setFont('helvetica','normal');doc.setTextColor(...G);doc.text(m[0],R-66,yy);doc.setFont('helvetica','bold');doc.setTextColor(22);doc.text(String(m[1]),R,yy,{align:'right'})});
+ y=Math.max(y+6+lines.length*4.6,y+9+meta.length*5)+6;
+ doc.setDrawColor(230,232,236);doc.setLineWidth(0.3);doc.line(L,y,R,y);y+=9;
+ doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...G);doc.text('BILL TO',L,y);
+ doc.setFontSize(12);doc.setTextColor(22);doc.text(c.name||'',L,y+6);
+ doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...G);[c.abn&&'ABN '+c.abn,c.address].filter(Boolean).forEach((l,k)=>doc.text(String(l),L,y+11+k*4.6));
+ doc.setFillColor(...soft(A));doc.roundedRect(R-64,y-5,64,st.showTerms?25:21,2.5,2.5,'F');
+ doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...A);doc.text('AMOUNT DUE',R-59,y+1);doc.setFontSize(18);doc.text('$'+money(t.total),R-59,y+10);
+ if(st.showTerms){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...G);doc.text('Due '+fmtD(dueDate(i)),R-59,y+16)}
+ y+=st.showTerms?29:25;
+ doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(22);doc.text(`${i.service} - ${rangeText(w)}`,L,y,{maxWidth:R-L});y+=4;
+ doc.autoTable({startY:y,margin:{left:L,right:210-R},theme:'plain',styles:{fontSize:9,cellPadding:{top:2.6,bottom:2.6,left:2.5,right:2.5},textColor:30,lineColor:[230,232,236],lineWidth:{bottom:0.2}},headStyles:{fillColor:A,textColor:255,fontStyle:'bold',fontSize:8},alternateRowStyles:{fillColor:[249,250,251]},
+  head:[['DAY','START','FINISH','HOURS','RATE','AMOUNT']],body:w.map(d=>[dayShort(d.date),t12(d.start),t12(d.finish),hrs(d).toFixed(1),'$'+money(d.rate),'$'+money(amt(d))]),
+  columnStyles:{3:{halign:'right'},4:{halign:'right'},5:{halign:'right'}},didParseCell:d=>{if(d.section==='head'&&d.column.index>=3)d.cell.styles.halign='right'}});
+ y=doc.lastAutoTable.finalY+6;const bt=breakText(w);
+ if(st.showBreak&&bt){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...G);doc.text(bt,L,y);y+=4}
+ const tx=R-72;y+=4;
+ const row=(l,v)=>{doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...G);doc.text(l,tx+4,y);doc.setTextColor(30);doc.text(v,R-4,y,{align:'right'});y+=6};
+ row('Total hours',t.hours.toFixed(1));row('Subtotal','$'+money(t.sub));row('GST','$'+money(t.gst));
+ doc.setFillColor(...A);doc.roundedRect(tx,y-3,72,11,2,2,'F');doc.setFont('helvetica','bold');doc.setFontSize(11.5);doc.setTextColor(255);doc.text('Total due',tx+4,y+4.3);doc.text('$'+money(t.total),R-4,y+4.3,{align:'right'});y+=20;
+ doc.setDrawColor(230,232,236);doc.line(L,y-6,R,y-6);
+ doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...G);doc.text('PAYMENT DETAILS',L,y);y+=6;
+ [['Bank',st.bank],['Account name',st.accName],['BSB',st.bsb],['Account no.',st.accNo],['Reference',i.number]].forEach(p=>{doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...G);doc.text(p[0],L,y);doc.setFont('helvetica','bold');doc.setTextColor(22);doc.text(String(p[1]||''),L+34,y);y+=5.2});
+ y+=5;doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...G);
+ if(!i.gst&&st.showGstNote){doc.text('No GST has been charged. The supplier is not registered for GST.',L,y);y+=5}
+ if(st.showFooter&&st.footer)doc.text(st.footer,L,y,{maxWidth:R-L});
+ return doc}
+function pdfFile(i){return new File([buildPDF(i).output('blob')],`${i.number||'invoice'}.pdf`,{type:'application/pdf'})}
+async function sharePDF(i){if(!window.jspdf)return toast('PDF tool not loaded. Check internet.');const f=pdfFile(i);
+ if(isPhone()&&navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:f.name});return}catch(e){if(e.name==='AbortError')return}}
+ download(f);toast('PDF downloaded')}
 
-/* ========== Settings ========== */
-async function setS(k,v){if(typeof v==='number'&&isNaN(v))return;if(S.settings[k]===v)return;S.settings[k]=v;addLog(`Setting changed: ${k}`);await save()}
-async function editClient(id){const c=id?S.clients.find(x=>x.id===id):{id:uid(),name:'',abn:'',address:''};
- const name=prompt('Client name',c.name);if(name==null)return;if(!name.trim())return alert('Name is required.');
- const abn=prompt('Client ABN (optional)',c.abn);if(abn==null)return;
- const address=prompt('Client address (optional)',c.address);if(address==null)return;
- Object.assign(c,{name:name.trim(),abn:abn.trim(),address:address.trim()});if(!id)S.clients.push(c);
- addLog(`Client ${id?'updated':'added'}: ${c.name}`);await save();render()}
+/* ===== Email ===== */
+const chips=id=>`<div class="chips">${VARS.map(v=>`<span onclick="insVar('${id}','{${v}}')">{${v}}</span>`).join('')}</div>`;
+function insVar(id,v){const b=document.getElementById(id);b.setRangeText(v,b.selectionStart,b.selectionEnd,'end');b.focus()}
+function emailInv(id){const i=id?find(id):E;EM=i;const c=client(i);
+ modal(`<h3>Email invoice ${esc(i.number)}</h3><p class="mu small" style="margin:0">${esc(c.name)} \u00b7 $${money(totals(i).total)}</p>
+ <label class="lbl">To</label><input id="em_to" class="inp" type="email" autocomplete="email" value="${esc(c.email||'')}" placeholder="accounts@client.com.au">
+ <label class="lbl">Saved message</label><select id="em_tp" class="inp" onchange="loadTpl()">${S.templates.map((t,k)=>`<option value="${k}">${esc(t.name)}</option>`).join('')}</select>
+ <label class="lbl">Subject</label><input id="em_sub" class="inp">
+ <label class="lbl">Message</label><textarea id="em_body" class="inp" rows="8"></textarea>
+ <p class="mu small" style="margin:8px 0 0">Tap to insert. These fill in automatically when sent:</p>${chips('em_body')}
+ <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:6px"><button class="link" onclick="saveTpl(false)">Update saved message</button><button class="link" onclick="$('#ntp').hidden=false;$('#ntn').focus()">Save as new message</button></div>
+ <div id="ntp" hidden><input id="ntn" class="inp" placeholder="Name, e.g. Overdue reminder"><button class="btn sm" style="margin-top:8px" onclick="saveTpl(true)">Save message</button></div>
+ <div class="mbtns col"><button class="btn" onclick="sendWithPdf()">Send with PDF attached</button><button class="btn sec" onclick="sendMailto()">Open in Mail (no attachment)</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>
+ <p class="mu small">With PDF: your share sheet opens. Choose Mail or Gmail. The client's email address is copied, so paste it into the To field.</p>`);loadTpl()}
+function loadTpl(){const t=S.templates[+$('#em_tp').value]||{};$('#em_sub').value=t.subject||'';$('#em_body').value=t.body||''}
+async function saveTpl(asNew){const t={subject:$('#em_sub').value,body:$('#em_body').value};
+ if(asNew){const n=$('#ntn').value.trim();if(!n)return toast('Enter a name for the message');t.name=n;S.templates.push(t);const sel=$('#em_tp');sel.add(new Option(n,S.templates.length-1));sel.value=S.templates.length-1;$('#ntp').hidden=true;$('#ntn').value=''}
+ else Object.assign(S.templates[+$('#em_tp').value],t);
+ addLog('Email message saved');await save();toast('Message saved')}
+function emailParts(){const i=EM;return{i,to:$('#em_to').value.trim().replace(/[?&#\s]/g,''),sub:fillVars($('#em_sub').value,i),body:fillVars($('#em_body').value,i)}}
+async function sendWithPdf(){const{i,to,sub,body}=emailParts();if(!window.jspdf)return toast('PDF tool not loaded. Check internet.');
+ const f=pdfFile(i);if(to&&navigator.clipboard)navigator.clipboard.writeText(to).catch(()=>{});
+ if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:sub,text:body});return afterSend(i,to)}catch(e){if(e.name==='AbortError')return}}
+ download(f);location.href=`mailto:${to}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;toast('PDF downloaded. Attach it to the email.');afterSend(i,to)}
+function sendMailto(){const{i,to,sub,body}=emailParts();location.href=`mailto:${to}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;afterSend(i,to)}
+async function afterSend(i,to){closeModal();const c=S.clients.find(x=>x.id===i.clientId);if(c&&to&&!c.email)c.email=to;
+ addLog(`${i.number} emailed${to?' to '+to:''}`);const stored=find(i.id);
+ if(stored&&!(E&&E.id===i.id)&&stored.status==='draft'&&await ask('Mark as sent?',`Mark ${esc(i.number)} as sent? It will be locked to protect it.`,'Mark as sent','false'==='true','Not now')){
+  const b=clone(stored);snap(stored);stored.status='sent';stored.locked=true;stored.history.push({ts:Date.now(),changes:diff(b,stored)});toast('Marked as sent')}
+ else if(E&&E.id===i.id&&E.status==='draft')toast('Set status to Sent, then Save');
+ await save();render()}
+
+/* ===== Settings ===== */
+async function setS(k,v){if(typeof v==='number'&&isNaN(v))return;if(S.settings[k]===v)return;S.settings[k]=v;addLog(`Setting changed: ${k}`);await save();toast('Saved')}
+function editClient(id){const c=id?S.clients.find(x=>x.id===id):{name:'',abn:'',address:'',email:''};
+ modal(`<h3>${id?'Edit':'New'} client</h3><label class="lbl">Business name</label><input id="cn" class="inp" value="${esc(c.name)}"><label class="lbl">ABN</label><input id="ca" class="inp" inputmode="numeric" value="${esc(c.abn)}"><label class="lbl">Address</label><input id="cd" class="inp" value="${esc(c.address)}"><label class="lbl">Email for invoices</label><input id="ce" class="inp" type="email" value="${esc(c.email||'')}">
+ <div class="mbtns">${id&&!S.invoices.some(i=>i.clientId===id)?`<button class="btn dan" onclick="delClient('${id}')">Delete</button>`:''}<button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" onclick="saveClient('${id||''}')">Save</button></div>`)}
+async function saveClient(id){const v={name:$('#cn').value.trim(),abn:$('#ca').value.trim(),address:$('#cd').value.trim(),email:$('#ce').value.trim()};if(!v.name)return toast('Name is required');
+ if(id)Object.assign(S.clients.find(x=>x.id===id),v);else S.clients.push({id:uid(),...v});addLog(`Client ${id?'updated':'added'}: ${v.name}`);await save();closeModal();toast('Client saved');render()}
+async function delClient(id){S.clients=S.clients.filter(x=>x.id!==id);addLog('Client deleted');await save();closeModal();render()}
+function editTpl(k){const t=k>=0?S.templates[k]:{name:'',subject:'Invoice {number} - {period}',body:''};
+ modal(`<h3>${k>=0?'Edit':'New'} email message</h3><label class="lbl">Name</label><input id="tn" class="inp" value="${esc(t.name)}" placeholder="e.g. Weekly invoice"><label class="lbl">Subject</label><input id="ts" class="inp" value="${esc(t.subject)}"><label class="lbl">Message</label><textarea id="tb" class="inp" rows="8">${esc(t.body)}</textarea>
+ <p class="mu small" style="margin:8px 0 0">Tap to insert. These fill in automatically:</p>${chips('tb')}
+ <div class="mbtns">${k>=0&&S.templates.length>1?`<button class="btn dan" onclick="delTpl(${k})">Delete</button>`:''}<button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" onclick="saveTplEdit(${k})">Save</button></div>`)}
+async function saveTplEdit(k){const t={name:$('#tn').value.trim(),subject:$('#ts').value,body:$('#tb').value};if(!t.name)return toast('Enter a name');
+ if(k>=0)Object.assign(S.templates[k],t);else S.templates.push(t);addLog('Email message saved');await save();closeModal();toast('Message saved');render()}
+async function delTpl(k){S.templates.splice(k,1);await save();closeModal();render()}
 function renderSettings(){const s=S.settings;
- const F=(k,l,type='text',extra='')=>`<div class="field"><label>${l}</label><input type="${type}" ${extra} value="${esc(s[k])}" onchange="setS('${k}',this.${type==='number'?'valueAsNumber':'value'})"></div>`;
+ const F=(k,l,type='text',ex='')=>`<div class="fld"><label>${l}</label><input class="inp" type="${type}" ${ex} value="${esc(s[k])}" placeholder="${esc(l)}" onchange="setS('${k}',${type==='number'?'this.valueAsNumber':'this.value'})"></div>`;
+ const T=(k,l,h='')=>`<div class="tg"><div><div style="font-weight:600">${l}</div>${h?`<div class="mu small">${h}</div>`:''}</div><label class="sw"><input type="checkbox" ${s[k]?'checked':''} onchange="setS('${k}',this.checked);render()"><span></span></label></div>`;
  const delList=S.invoices.filter(i=>i.deleted);
- app.innerHTML=`<div class="wrap"><div class="top"><h1>Settings</h1><button class="link" onclick="lock()">Lock</button></div>
- <h2>Your business</h2><div class="card">${F('name','Name')}${F('abn','ABN','text','inputmode="numeric"')}${F('address','Address')}${F('phone','Phone','tel')}${F('email','Email','email')}</div>
- <h2>Bank details</h2><div class="card">${F('bank','Bank')}${F('accName','Account name')}${F('bsb','BSB','text','inputmode="numeric"')}${F('accNo','Account no.','text','inputmode="numeric"')}</div>
- <h2>Invoice defaults</h2><div class="card">${F('service','Service')}${F('rate','Hourly rate ($)','number','step="0.01" inputmode="decimal"')}${F('start','Start time','time')}${F('finish','Finish time','time')}${F('breakMin','Unpaid break (min)','number','inputmode="numeric"')}${F('terms','Payment terms (days)','number','inputmode="numeric"')}
- <div class="field"><label>Registered for GST</label><input type="checkbox" style="flex:none;width:22px;height:22px" ${s.gst?'checked':''} onchange="setS('gst',this.checked)"></div></div>
- <h2>Clients</h2><div class="card">${S.clients.map(c=>`<div class="rc" style="border-bottom:1px solid var(--ln)" onclick="editClient('${c.id}')"><div><b>${esc(c.name)}</b><div class="sub">${c.abn?'ABN '+esc(c.abn):''} ${esc(c.address||'')}</div></div><span class="sub">Edit \u203a</span></div>`).join('')}<div class="pad"><button class="btn sm sec" onclick="editClient()">+ Add client</button></div></div>
- <h2>Backup</h2><div class="card"><div class="pad"><p class="sub" style="margin-top:0">Creates an encrypted backup file. Choose <b>Google Drive</b> (or Save to Files) in the share sheet. It can only be opened with your PIN or recovery code.</p>
- <p class="sub">Last backup: <b>${s.lastBackup?fmtD(s.lastBackup):'never'}</b></p><button class="btn sm" onclick="backup()">Back up now</button> <button class="btn sm sec" onclick="restorePick()">Restore</button></div></div>
- <h2>Security</h2><div class="card"><div class="pad"><div class="sub" style="margin-bottom:6px">Change PIN</div>
- <input id="cp0" class="pinin" type="password" inputmode="numeric" placeholder="Current PIN"><input id="cp1" class="pinin" type="password" inputmode="numeric" placeholder="New PIN (6+ digits)"><input id="cp2" class="pinin" type="password" inputmode="numeric" placeholder="Confirm new PIN">
- <button class="btn sm" style="margin-top:6px" onclick="changePin()">Change PIN</button></div>
- <div class="field" style="cursor:pointer" onclick="go('log')"><label style="color:var(--tx)">Activity log</label><span class="sub">\u203a</span></div></div>
- <p class="sub" style="margin:8px 4px">Records are encrypted on this phone with your PIN. The app locks after 5 minutes without use, or 30 seconds after you leave it.</p>
- ${delList.length?`<h2>Recently deleted</h2><div class="card">${delList.map(i=>`<div class="field"><label style="color:var(--tx)">${esc(i.number)} \u00b7 $${money(totals(i).total)}</label><button class="link" onclick="restore('${i.id}')">Restore</button></div>`).join('')}</div>`:''}
- </div>`}
+ const left=`<h2 class="sec">Your business</h2><div class="card"><div class="fgrid two">${F('name','Name')}${F('abn','ABN','text','inputmode="numeric"')}<div style="grid-column:1/-1">${F('address','Address')}</div>${F('phone','Phone','tel')}${F('email','Email','email')}</div></div>
+ <h2 class="sec">Bank details</h2><div class="card"><div class="fgrid two">${F('bank','Bank')}${F('accName','Account name')}${F('bsb','BSB','text','inputmode="numeric"')}${F('accNo','Account no.','text','inputmode="numeric"')}</div></div>
+ <h2 class="sec">Invoice defaults</h2><div class="card"><div class="fgrid two"><div style="grid-column:1/-1">${F('service','Service description')}</div>${F('rate','Hourly rate ($)','number','step="0.01" inputmode="decimal"')}${F('breakMin','Unpaid break (minutes)','number','inputmode="numeric"')}${F('start','Start time','time')}${F('finish','Finish time','time')}${F('terms','Payment terms (days)','number','inputmode="numeric"')}</div></div>
+ <h2 class="sec">Invoice appearance</h2><div class="card"><div class="pad"><div class="fld"><label>Accent colour</label><div class="sws">${Object.entries(ACC).map(([k,v])=>`<div class="swc ${s.accent===k?'on':''}" title="${k}" style="background:${v}" onclick="setS('accent','${k}');render()"></div>`).join('')}</div></div></div>
+ ${T('gst','Registered for GST','Adds 10% GST and titles new invoices "Tax Invoice"')}
+ ${T('showTerms','Show due date','Uses your payment terms to show a due date')}
+ ${T('showBreak','Show lunch break note')}
+ ${T('showGstNote','Show "No GST" note','Only shown when not registered for GST')}
+ ${T('showFooter','Footer message','A closing line at the bottom of every invoice')}
+ ${s.showFooter?`<div class="pad" style="padding-top:0"><input class="inp" value="${esc(s.footer)}" placeholder="Footer message" onchange="setS('footer',this.value)"></div>`:''}</div>`;
+ const right=`<h2 class="sec">Clients</h2><div class="card">${S.clients.map(c=>`<div class="rc" style="border-bottom:1px solid var(--ln)" onclick="editClient('${c.id}')"><div class="av">${esc(initials(c.name))}</div><div class="grow"><b>${esc(c.name)}</b><div class="mu small">${esc(c.email||'No email saved')}</div></div><span class="mu">\u203a</span></div>`).join('')}<div class="pad"><button class="btn sm sec" onclick="editClient()">+ Add client</button></div></div>
+ <h2 class="sec">Saved email messages</h2><div class="card">${S.templates.map((t,k)=>`<div class="rc" style="border-bottom:1px solid var(--ln)" onclick="editTpl(${k})"><div class="grow"><b>${esc(t.name)}</b><div class="mu small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.subject)}</div></div><span class="mu">\u203a</span></div>`).join('')}<div class="pad"><button class="btn sm sec" onclick="editTpl(-1)">+ New message</button></div></div>
+ <h2 class="sec">Backup</h2><div class="card"><div class="pad"><p class="mu small" style="margin-top:0">Saves an encrypted copy of all your records. On iPhone, choose <b>Google Drive</b> or <b>Save to Files</b> in the share sheet. On a computer the file downloads; upload it to drive.google.com.</p>
+ <p style="margin:10px 0">Last backup: <b>${s.lastBackup?fmtD(s.lastBackup):'Never'}</b></p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="backup()">Back up now</button><button class="btn sm sec" onclick="restorePick()">Restore from file</button></div></div></div>
+ <h2 class="sec">Security</h2><div class="card"><div class="pad"><div class="fld"><label>Change PIN</label></div><div class="stack"><input id="cp0" class="inp" type="password" inputmode="numeric" placeholder="Current PIN"><input id="cp1" class="inp" type="password" inputmode="numeric" placeholder="New PIN (6+ digits)"><input id="cp2" class="inp" type="password" inputmode="numeric" placeholder="Confirm new PIN"></div>
+ <button class="btn sm" style="margin-top:10px" onclick="changePin()">Change PIN</button></div>
+ <div class="tg" style="cursor:pointer" onclick="go('log')"><span style="font-weight:600">Activity log</span><span class="mu">\u203a</span></div></div>
+ <p class="mu small" style="margin:8px 4px">Records are encrypted on this device with your PIN. The app locks after 5 minutes without use, or 30 seconds after you leave it.</p>
+ ${delList.length?`<h2 class="sec">Recently deleted</h2><div class="card">${delList.map(i=>`<div class="tg"><span>${esc(i.number)} \u00b7 $${money(totals(i).total)}</span><button class="link" onclick="restore('${i.id}')">Restore</button></div>`).join('')}</div>`:''}`;
+ app.innerHTML=`<div class="wrap"><div class="top"><h1>Settings</h1><button class="link mlock" onclick="lock()">Lock</button></div><div class="sgrid"><div>${left}</div><div>${right}</div></div></div>`}
 function renderLog(){app.innerHTML=`<div class="wrap"><div class="top"><button class="link" onclick="go('settings')">\u2039 Settings</button><b>Activity log</b><span style="width:60px"></span></div>
- <div class="card" style="margin-top:12px">${S.log.map(l=>`<div class="hist"><span class="sub">${new Date(l.ts).toLocaleString('en-AU')}</span><br>${esc(l.text)}</div>`).join('')||'<div class="empty">No activity yet.</div>'}</div></div>`}
+ <div class="card" style="margin-top:12px">${S.log.map(l=>`<div class="hist"><span class="mu small">${new Date(l.ts).toLocaleString('en-AU')}</span><br>${esc(l.text)}</div>`).join('')||'<div class="empty">No activity yet.</div>'}</div></div>`}
 
 renderLock();
 </script>
