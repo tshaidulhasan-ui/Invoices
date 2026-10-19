@@ -1,23 +1,26 @@
 'use strict';
-/* ===== Invoice PDF reading rules, matched to your invoice layout. Future reading fixes go here. ===== */
+/* ===== Invoice PDF reading rules (v2): reads the exact From and To dates. Future reading fixes go here. ===== */
 const WDAY=/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\b/i;
+const monNum=w=>MON[String(w||'').slice(0,3).toLowerCase()];
 function allDates(s){const out=[],re=/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b|\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})\b/g;let m;
- while((m=re.exec(s))){let d=null;if(m[1])d=okDate(+m[3]<100?2000+(+m[3]):+m[3],+m[2],+m[1]);else{const mo=MON[m[5].slice(0,3).toLowerCase()];if(mo)d=okDate(+m[6],mo,+m[4])}if(d)out.push(d)}return out}
-function periodInfo(lines,flat){
- /* 1. Hours Worked table: rows that start with a day name and contain a date */
+ while((m=re.exec(s))){let d=null;if(m[1])d=okDate(+m[3]<100?2000+(+m[3]):+m[3],+m[2],+m[1]);else{const mo=monNum(m[5]);if(mo)d=okDate(+m[6],mo,+m[4])}if(d)out.push(d)}return out}
+function periodInfo(lines,flat){let m;
+ /* 1. Pay Period exactly as written, even when the PDF splits it over two lines: "12 Oct – 18 Oct 2026" */
+ m=flat.match(/(\d{1,2})\s+([A-Za-z]{3,9})\.?(?:\s+(\d{4}))?\s*(?:[-\u2010-\u2015~]|\bto\b)\s*[^\d]{0,80}?(\d{1,2})\s+([A-Za-z]{3,9})\.?\s+(\d{4})/);
+ if(m){const sm=monNum(m[2]),em=monNum(m[5]);if(sm&&em){const ey=+m[6];let sy=m[3]?+m[3]:ey;if(!m[3]&&sm>em)sy=ey-1;
+  const s=okDate(sy,sm,+m[1]),e=okDate(ey,em,+m[4]);if(s&&e&&e>=s&&D(e)-D(s)<=62*864e5)return{start:s,end:e}}}
+ /* "12/10/2026 – 18/10/2026" */
+ m=flat.match(/(\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4})\s*(?:[-\u2010-\u2015~]|\bto\b)\s*(\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4})/);
+ if(m){const s=pDate(m[1]),e=pDate(m[2]);if(s&&e&&e>=s)return{start:s,end:e}}
+ /* 2. Sentence "Monday 12 to Friday 16 October 2026" */
+ m=flat.match(/(?:[A-Za-z]+day\s+)?(\d{1,2})\s*(?:\bto\b|[-\u2013])\s*(?:[A-Za-z]+day\s+)?(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})/i);
+ if(m){const mo=monNum(m[3]);if(mo&&+m[1]<=+m[2]){const s=okDate(+m[4],mo,+m[1]),e=okDate(+m[4],mo,+m[2]);if(s&&e)return{start:s,end:e}}}
+ /* 3. Hours Worked table */
  const days=[];lines.forEach(l=>{if(WDAY.test(l)){const ds=allDates(l);if(ds.length)days.push(ds[0])}});
- if(days.length){days.sort();return{start:monday(days[0]),end:days[days.length-1]}}
- /* 2. Pay Period "12 Oct – 18 Oct 2026", including weeks that cross into a new year */
- const sep='\\s*(?:[-\u2010-\u2015~]|to|until|till)\\s*';
- let m=flat.match(new RegExp('(\\d{1,2})\\s+([A-Za-z]{3,9})(?:\\s+(\\d{4}))?'+sep+'(\\d{1,2})\\s+([A-Za-z]{3,9})\\s+(\\d{4})'));
- if(m){const sm=MON[m[2].slice(0,3).toLowerCase()],em=MON[m[5].slice(0,3).toLowerCase()];
-  if(sm&&em){const ey=+m[6];let sy=m[3]?+m[3]:ey;if(!m[3]&&sm>em)sy=ey-1;const s=okDate(sy,sm,+m[1]),e=okDate(ey,em,+m[4]);if(s&&e&&e>=s)return{start:monday(s),end:e}}}
- /* 3. Sentence "Monday 12 to Friday 16 October 2026" */
- m=flat.match(/(?:[A-Za-z]+day\s+)?(\d{1,2})\s*(?:to|[-\u2013])\s*(?:[A-Za-z]+day\s+)?(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})/i);
- if(m){const mo=MON[m[3].slice(0,3).toLowerCase()];if(mo&&+m[1]<=+m[2]){const s=okDate(+m[4],mo,+m[1]),e=okDate(+m[4],mo,+m[2]);if(s&&e)return{start:monday(s),end:e}}}
+ if(days.length){days.sort();return{start:days[0],end:days[days.length-1]}}
  /* 4. "Week ending 18.10.2026" */
  m=flat.match(/week\s*ending\s*:?\s*(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})/i);
- if(m){const e=pDate(m[1]);if(e)return{start:monday(addDays(e,-6)),end:e}}
+ if(m){const e=pDate(m[1]);if(e)return{start:addDays(e,-6),end:e}}
  return null}
 function invoiceDate(lines,flat){
  const lab=flat.match(/invoice\s*date\s*:?\s*(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}|\d{1,2}\s+[A-Za-z]{3,9}\.?,?\s+\d{4})/i);if(lab&&pDate(lab[1]))return pDate(lab[1]);
@@ -27,21 +30,37 @@ const _parseInvoiceP=parseInvoice;
 parseInvoice=function(t){const r=_parseInvoiceP(t),lines=t.split('\n').map(s=>s.trim()).filter(Boolean),flat=lines.join(' '),per=periodInfo(lines,flat);
  delete r.start;delete r.end;if(per){r.start=per.start;r.end=per.end}
  const d=invoiceDate(lines,flat);if(d)r.date=d;
- if(r.start&&(!r.date||r.date<r.start||D(r.date)-D(r.start)>90*864e5))r.date=addDays(r.start,6);
- if(!r.start&&r.date)r.start=monday(addDays(r.date,-6));
+ if(r.start&&(!r.date||r.date<r.start||D(r.date)-D(r.end)>90*864e5))r.date=r.end;
+ if(!r.start&&r.date){r.start=addDays(r.date,-6);r.end=r.date;r.periodGuess=true}
  return r};
+
+/* Past records keep the exact From and To dates */
+const _pastBaseP=pastBase;
+pastBase=function(p={}){const r=_pastBaseP(p);if(p.start)r.weekStart=p.start;r.pEnd=p.end||addDays(r.weekStart,6);if(p.periodGuess)r._periodGuess=true;return r};
+const _renderPastEditP=renderPastEdit;
+renderPastEdit=function(){_renderPastEditP();const p=PX;if(!p)return;if(!p.pEnd)p.pEnd=addDays(p.weekStart,6);const dis=p.locked?'disabled':'';
+ const f=[...document.querySelectorAll('.fld')].find(x=>/Work period/i.test(x.textContent));
+ if(f)f.outerHTML=`<div class="fld"><label>Work period from</label><input class="inp" type="date" ${dis} value="${p.weekStart}" onchange="if(this.value){PX.weekStart=this.value;if(PX.pEnd<this.value)PX.pEnd=this.value;renderPastEdit()}"></div>
+ <div class="fld"><label>Work period to</label><input class="inp" type="date" ${dis} value="${p.pEnd}" onchange="if(this.value){PX.pEnd=this.value;delete PX._periodGuess;renderPastEdit()}">${p._periodGuess?'<div class="small" style="margin-top:4px;color:var(--am)">Not found in the PDF, so this is a guess. Please check.</div>':''}</div>`};
+VIEWS.pastEdit=renderPastEdit;
+const _savePastP=savePast;
+savePast=async function(){if(PX){delete PX._periodGuess;if(PX.pEnd&&PX.pEnd<PX.weekStart)return toast('The "to" date is before the "from" date')}return _savePastP()};
+const _pastDiffP=pastDiff;
+pastDiff=function(a,b){const c=_pastDiffP(a,b);if((a.pEnd||'')!==(b.pEnd||''))c.push(`Period end: ${a.pEnd?fmtD(a.pEnd):'\u2014'} \u2192 ${b.pEnd?fmtD(b.pEnd):'\u2014'}`);return c};
 
 /* Re-check dates of past records that already have a saved PDF */
 let DATEFIX=[];
 async function recheckDates(){const recs=live().filter(i=>isLump(i)&&i.file);if(!recs.length)return toast('No saved PDFs to check');DATEFIX=[];
  for(let k=0;k<recs.length;k++){const i=recs[k];toast(`Checking ${k+1} of ${recs.length}\u2026`);
-  try{const b=await loadFile(i.file);if(!b)continue;const p=parseInvoice(await readPDF(b)),ws=p.start||i.weekStart,dt=p.date||i.date;if(ws!==i.weekStart||dt!==i.date)DATEFIX.push({id:i.id,ws,dt})}catch(e){}}
+  try{const b=await loadFile(i.file);if(!b)continue;const p=parseInvoice(await readPDF(b));if(p.periodGuess)continue;
+   const ws=p.start||i.weekStart,pe=p.end||i.pEnd||addDays(i.weekStart,6),dt=p.date||i.date;
+   if(ws!==i.weekStart||pe!==(i.pEnd||addDays(i.weekStart,6))||dt!==i.date)DATEFIX.push({id:i.id,ws,pe,dt})}catch(e){}}
  if(!DATEFIX.length)return toast('All dates already match their PDFs');
  modal(`<h3>Fix ${DATEFIX.length} record${DATEFIX.length>1?'s':''}?</h3><p class="mu small">These dates don't match the original PDFs. Each change is saved in the record's history.</p>
- <div style="max-height:45vh;overflow:auto;border:1px solid var(--ln);border-radius:10px">${DATEFIX.map(f=>{const i=find(f.id);return `<div class="hist"><b>${esc(i.number)}</b><br>Period: ${period(i)} \u2192 <b>${period({weekStart:f.ws})}</b><br>Date: ${fmtD(i.date)} \u2192 <b>${fmtD(f.dt)}</b></div>`}).join('')}</div>
+ <div style="max-height:45vh;overflow:auto;border:1px solid var(--ln);border-radius:10px">${DATEFIX.map(f=>{const i=find(f.id);return `<div class="hist"><b>${esc(i.number)}</b><br>Period: ${period(i)} \u2192 <b>${period({weekStart:f.ws,pEnd:f.pe})}</b><br>Date: ${fmtD(i.date)} \u2192 <b>${fmtD(f.dt)}</b></div>`}).join('')}</div>
  <div class="mbtns"><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" onclick="applyDateFix()">Fix all</button></div>`)}
 async function applyDateFix(){const fx=DATEFIX;DATEFIX=[];closeModal();
- fx.forEach(f=>{const i=find(f.id);if(!i)return;const b=clone(i);i.weekStart=f.ws;if(i.paidDate===i.date)i.paidDate=f.dt;i.date=f.dt;
+ fx.forEach(f=>{const i=find(f.id);if(!i)return;const b=clone(i);i.weekStart=f.ws;i.pEnd=f.pe;if(i.paidDate===i.date)i.paidDate=f.dt;i.date=f.dt;
   i.history=[...(i.history||[]),{ts:Date.now(),changes:pastDiff(b,i),reason:'Dates re-read from the original PDF'}]});
  addLog(`${fx.length} past record date${fx.length>1?'s':''} corrected from their PDFs`);await save();toast('Dates fixed');render()}
 const _renderPastP=renderPast;
