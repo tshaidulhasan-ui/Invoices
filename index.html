@@ -175,9 +175,10 @@ textarea.inp{resize:vertical;min-height:130px;line-height:1.45}
 <main id="app"></main>
 <div id="modal" hidden></div>
 <div id="toast"></div>
-<script src="rates.js?v=3"></script>
-<script src="app.js?v=3"></script>
-<script src="finance.js?v=3"></script>
-<script>renderLock()</script>
+<script src="rates.js?v=4"></script>
+<script src="app.js?v=4"></script>
+<script src="finance.js?v=4"></script>
+<script src="extras.js?v=4"></script>
+<script>renderLock();if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})</script>
 </body>
 </html>
