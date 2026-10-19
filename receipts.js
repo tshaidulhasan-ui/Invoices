@@ -1,5 +1,5 @@
 'use strict';
-/* ===== Receipt reading rules (v2): reads photos and PDFs and fills in expenses by itself. Future reading fixes go here. ===== */
+/* ===== Receipt reading rules (v3): reads photos and PDFs and fills in expenses by itself. Future reading fixes go here. ===== */
 const SUPPLIERS=[
  [/bunnings/i,'Bunnings','Tools and equipment'],[/total\s*tools/i,'Total Tools','Tools and equipment'],[/sydney\s*tools/i,'Sydney Tools','Tools and equipment'],[/mitre\s*10/i,'Mitre 10','Tools and equipment'],
  [/blackwoods/i,'Blackwoods','Tools and equipment'],[/kennards/i,'Kennards Hire','Tools and equipment'],[/coates\s*hire/i,'Coates Hire','Tools and equipment'],
@@ -19,26 +19,22 @@ const SUPPLIERS=[
 const KEYWORD_CATS=[[/unleaded|diesel|\bu9[158]\b|\be10\b|litres|\bltrs?\b|fuel/i,'Vehicle and fuel'],[/steel\s*cap|hi[\s-]?vis|safety\s*(boot|glass)|gloves|workwear/i,'PPE and workwear'],
  [/public\s*liability|insurance|premium/i,'Insurance'],[/licen[cs]e|course|training|certificate/i,'Licences and training'],[/mobile|broadband|internet|nbn/i,'Phone and internet'],[/subscription|software/i,'Subscriptions and software']];
 
-/* Fix common photo-reading mistakes without damaging dates or month names */
-function normText(t){return String(t||'').replace(/(\d)[oO](?=[\d.,:\/])/g,(m,a)=>a+'0').replace(/([\s$.,\/])[oO](?=\d)/g,(m,a)=>a+'0')
- .replace(/\bS(?=\d)/g,'$').replace(/\$\s+/g,'$').replace(/(\d)\s*,\s*(\d{2})(?!\d)/g,'$1.$2').replace(/(\d)\s+\.\s*(\d{2})(?!\d)/g,'$1.$2')}
+/* Only safe clean-ups: letter O inside numbers, "S39.00" -> "$39.00", "39 .00" -> "39.00" */
+function normText(t){return String(t||'').replace(/(\d)[oO](?=[\d.:\/])/g,(m,a)=>a+'0').replace(/([\s$.\/])[oO](?=\d)/g,(m,a)=>a+'0')
+ .replace(/\bS(?=\d)/g,'$').replace(/\$\s+/g,'$').replace(/(\d)\s\.(\d{2})(?!\d)/g,'$1.$2').replace(/(\d)\.\s(\d{2})(?!\d)/g,'$1.$2')}
 const amtRe=/\$?\s?(\d{1,3}(?:,\d{3})+\.\d{2}|\d+\.\d{2})(?!\d)/g;
 const amountsIn=l=>[...String(l).matchAll(amtRe)].map(x=>+x[1].replace(/,/g,'')).filter(v=>v>0&&v<100000);
-function findTotal(lines){
- const good=/\b(total|amount\s*due|balance\s*due|amount\s*paid|eftpos|visa|mastercard|master\s*card|amex|debit|credit|purchase|card|paid|paywave|paypass)\b/i,
-  bad=/sub\s*-?\s*total|\bgst\b|\btax\b|change|cash\s*(tend|given|rec)|tendered|rounding|saving|discount|\bsave\b|points|rewards|remaining|per\s*l(itre)?\b|\/l\b|\bqty\b|\bunit\b/i,cand={};
- lines.forEach((l,k)=>{if(good.test(l)&&!bad.test(l)){let v=amountsIn(l);if(!v.length&&lines[k+1]&&!bad.test(lines[k+1]))v=amountsIn(lines[k+1]);
-  const w=/total|amount\s*due|balance\s*due|amount\s*paid/i.test(l)?3:2;v.forEach(x=>cand[x]=(cand[x]||0)+w)}});
- let keys=Object.keys(cand);if(keys.length)return +keys.sort((a,b)=>cand[b]-cand[a]||b-a)[0];
- const f={};lines.forEach(l=>{if(!/\b(abn|acn|ph|phone|tel|store|terminal|tid|mid|ref|auth|invoice\s*no|receipt\s*no)\b/i.test(l))amountsIn(l).forEach(v=>f[v]=(f[v]||0)+1)});
- keys=Object.keys(f);return keys.length?+keys.sort((a,b)=>f[b]-f[a]||b-a)[0]:null}
+const BADLINE=/sub\s*-?\s*total|\bgst\b|\btax\b|change|cash\s*(tend|given|rec)|tendered|rounding|saving|discount|\bsave\b|points|rewards|remaining|per\s*l(itre)?\b|\/l\b|\bqty\b|\bunit\b|\b@\b/i;
+function findTotal(lines){const tier=re=>{const v=[];lines.forEach((l,k)=>{if(re.test(l)&&!BADLINE.test(l)){let a=amountsIn(l);if(!a.length&&lines[k+1]&&!BADLINE.test(lines[k+1]))a=amountsIn(lines[k+1]);v.push(...a)}});return v};
+ let v=tier(/\b(total|amount\s*due|balance\s*due|amount\s*paid|total\s*payable|grand\s*total|to\s*pay)\b/i);if(v.length)return Math.max(...v);
+ v=tier(/\b(eftpos|visa|mastercard|master\s*card|amex|debit|credit|purchase|card|paid|paywave|paypass|apple\s*pay|google\s*pay)\b/i);if(v.length)return Math.max(...v);
+ v=[];lines.forEach(l=>{if(!BADLINE.test(l)&&!/\b(abn|acn|ph|phone|tel|store|terminal|tid|mid|ref|auth|invoice\s*no|receipt\s*no)\b/i.test(l))v.push(...amountsIn(l))});return v.length?Math.max(...v):null}
 function recDates(s){const out=[];let m;
- const r1=/\b(\d{1,2})\s?[\/\-.]\s?(\d{1,2})\s?[\/\-.]\s?(\d{2,4})\b/g;while((m=r1.exec(s))){const d=okDate(+m[3]<100?2000+(+m[3]):+m[3],+m[2],+m[1]);if(d)out.push(d)}
+ const r1=/\b(\d{1,2})\s?[\/\-.]\s?(\d{1,2})\s?[\/\-.]\s?(\d{4}|\d{2})\b/g;while((m=r1.exec(s))){const d=okDate(+m[3]<100?2000+(+m[3]):+m[3],+m[2],+m[1]);if(d)out.push(d)}
  const r2=/\b(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})\b/g;while((m=r2.exec(s))){const d=okDate(+m[1],+m[2],+m[3]);if(d)out.push(d)}
- const r3=/\b(\d{1,2})(?:st|nd|rd|th)?[\s\-]*([A-Za-z]{3,9})\.?,?[\s\-]*(\d{2,4})\b/g;while((m=r3.exec(s))){const mo=MON[m[2].slice(0,3).toLowerCase()];if(mo){const d=okDate(+m[3]<100?2000+(+m[3]):+m[3],mo,+m[1]);if(d)out.push(d)}}
+ const r3=/\b(\d{1,2})(?:st|nd|rd|th)?[\s\-]*([A-Za-z]{3,9})\.?,?[\s\-]*(\d{4}|\d{2})\b/g;while((m=r3.exec(s))){const mo=MON[m[2].slice(0,3).toLowerCase()];if(mo){const d=okDate(+m[3]<100?2000+(+m[3]):+m[3],mo,+m[1]);if(d)out.push(d)}}
  const r4=/\b([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})\b/g;while((m=r4.exec(s))){const mo=MON[m[1].slice(0,3).toLowerCase()];if(mo){const d=okDate(+m[3],mo,+m[2]);if(d)out.push(d)}}
  return out}
-/* Last resort for photos: "/" misread as "l", "I", "|" or "\" */
 const looseDates=s=>recDates(String(s).replace(/(\d)\s*[|lI\\]\s*(?=\d)/g,'$1/'));
 function findDate(lines){const now=today(),min=addDays(now,-6*366);
  const pick=fn=>{const c=[];lines.forEach((l,k)=>fn(l).forEach(d=>{if(d<=now&&d>=min)c.push({d,w:/date|dated|issued|purchase|transaction|time|\d{1,2}:\d{2}/i.test(l)?2:1,k})}));
@@ -46,11 +42,11 @@ function findDate(lines){const now=today(),min=addDays(now,-6*366);
  return pick(recDates)||pick(l=>/date|time|\d{1,2}:\d{2}/i.test(l)?looseDates(l):[])}
 function guessName(lines){const skip=/tax\s*invoice|receipt|invoice|abn|acn|phone|\btel\b|www\.|http|@|total|gst|date|time|welcome|thank|copy|eftpos|customer/i;
  const l=lines.slice(0,6).find(l=>/[A-Za-z]{3,}/.test(l)&&!skip.test(l));return l?l.replace(/[^\w &'.-]/g,'').replace(/\s+/g,' ').trim().slice(0,40)||null:null}
-function parseReceiptPro(text){const lines=text.split('\n').map(s=>s.trim()).filter(Boolean),flat=lines.join(' ');
+function parseReceiptPro(text){const lines=String(text).split('\n').map(s=>s.trim()).filter(Boolean),flat=lines.join(' ');
  const named=SUPPLIERS.find(([re])=>re.test(flat)),kw=KEYWORD_CATS.find(([re])=>re.test(flat)),gl=lines.find(l=>/\bgst\b/i.test(l)&&amountsIn(l).length);
  return{total:findTotal(lines),date:findDate(lines),supplier:named?named[1]:guessName(lines),category:named?named[2]:(kw?kw[1]:null),gst:gl?amountsIn(gl).slice(-1)[0]:null}}
 
-/* Photo reading: gentle grey clean-up, then two reading modes if needed */
+/* Photo reading: gentle grey clean-up; a second read only fills what the first missed */
 let OCRW=null;
 async function ocrWorker(){await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');if(!OCRW)OCRW=await Tesseract.createWorker('eng');return OCRW}
 async function ocrPass(img,psm){const w=await ocrWorker();await w.setParameters({tessedit_pageseg_mode:String(psm),preserve_interword_spaces:'1'});return (await w.recognize(img)).data.text||''}
@@ -61,13 +57,15 @@ function grayStretch(c){const x=c.getContext('2d'),im=x.getImageData(0,0,c.width
 async function prepForOCR(blob){const url=URL.createObjectURL(blob);const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
  const s=Math.min(2.5,2000/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);return grayStretch(c)}
-async function readReceiptText(blob){if(/pdf/i.test(blob.type))return readPDF(blob);const img=await prepForOCR(blob);let t=await ocrPass(img,4);
- const p=parseReceiptPro(normText(t));if(!p.total||!p.date)t+='\n'+await ocrPass(img,6);return t}
+async function readReceipt2(blob){if(/pdf/i.test(blob.type)){const t=await readPDF(blob);return{t,p:parseReceiptPro(normText(t))}}
+ const img=await prepForOCR(blob),t1=await ocrPass(img,4),p1=parseReceiptPro(normText(t1));if(p1.total&&p1.date)return{t:t1,p:p1};
+ const t2=await ocrPass(img,6),p2=parseReceiptPro(normText(t2));
+ return{t:t1+'\n\n--- second read ---\n'+t2,p:{total:p1.total||p2.total,date:p1.date||p2.date,supplier:p1.supplier||p2.supplier,category:p1.category||p2.category,gst:p1.gst||p2.gst}}}
 
 /* Fill the expense by itself; never overwrite what you typed (unless you tap Auto-fill) */
-async function autoReadReceipt(blob,manual){if(!X)return;const xid=X.id;X._reading=true;renderExpEdit();let text='';
- try{text=await readReceiptText(blob)}catch(e){}
- if(!X||X.id!==xid)return;X._reading=false;const p=parseReceiptPro(normText(text)),got=[];X._ocr=text;
+async function autoReadReceipt(blob,manual){if(!X)return;const xid=X.id;X._reading=true;renderExpEdit();let r={t:'',p:{}};
+ try{r=await readReceipt2(blob)}catch(e){}
+ if(!X||X.id!==xid)return;X._reading=false;const p=r.p,got=[];X._ocr=r.t;
  if(p.total&&(manual||!(+X.amount>0))){X.amount=p.total;got.push('amount')}
  if(p.date&&(manual||!X._dateSet)){X.date=p.date;got.push('date')}
  if(p.supplier&&(manual||!X.supplier)){X.supplier=p.supplier;got.push('supplier')}
@@ -86,7 +84,7 @@ renderExpEdit=function(){_renderExpEditR();if(!X)return;loadScript('https://cdn.
  if(X._reading)html='<div class="banner info"><b>Reading receipt\u2026</b> The details will fill in by themselves in a few seconds.</div>';
  else if(X._ocr!=null){const ok=X._got&&X._got.length,miss=(X._missing||[]).filter(k=>!(k==='amount'&&+X.amount>0));
   html=`<div class="banner ${ok&&!miss.length?'info':''}">${ok?`<b>Filled in from the receipt:</b> ${X._got.join(', ')}. Please check before saving.`:"<b>Couldn't read this receipt clearly.</b>"}${miss.length?` <b>Not found:</b> ${miss.join(', ')}. Please enter ${miss.length>1?'them':'it'}.`:''}
-  <details style="margin-top:6px"><summary class="link" style="cursor:pointer;padding:0">Show the text read</summary><pre style="white-space:pre-wrap;font-size:12px;background:#fff;border-radius:8px;padding:10px;max-height:240px;overflow:auto">${esc((X._ocr||'(no text found)').slice(0,3000))}</pre></details></div>`}
+  <details style="margin-top:6px"><summary class="link" style="cursor:pointer;padding:0">Show the text read</summary><pre style="white-space:pre-wrap;font-size:12px;background:#fff;border-radius:8px;padding:10px;max-height:240px;overflow:auto">${esc((X._ocr||'(no text found)').slice(0,4000))}</pre></details></div>`}
  if(html&&top)top.insertAdjacentHTML('afterend',html);
  const di=$('#x_date');if(di)di.addEventListener('change',()=>{X._dateSet=true});const cs=document.querySelector('.edgrid select.inp');if(cs)cs.addEventListener('change',()=>{X._catSet=true})};
 VIEWS.expEdit=renderExpEdit;
