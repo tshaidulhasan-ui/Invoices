@@ -48,7 +48,7 @@ const fyLabel=y=>`FY ${y}\u2013${String(y+1).slice(2)}`;
 const fmtD=s=>D(s).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
 const dayShort=s=>{const d=D(s);return `${d.toLocaleDateString('en-AU',{weekday:'short'})} ${d.getDate()} ${d.toLocaleDateString('en-AU',{month:'short'})}`};
 const t12=s=>{let[h,m]=s.split(':').map(Number);const ap=h>=12?'pm':'am';h=h%12||12;return `${h}:${String(m).padStart(2,'0')} ${ap}`};
-const period=i=>`${D(i.weekStart).toLocaleDateString('en-AU',{day:'numeric',month:'short'})} - ${fmtD(addDays(i.weekStart,6))}`;
+const period=i=>{const e=i.pEnd||addDays(i.weekStart,6);return `${D(i.weekStart).toLocaleDateString('en-AU',{day:'numeric',month:'short'})} - ${fmtD(e)}`};
 const shortRange=i=>`${D(i.weekStart).toLocaleDateString('en-AU',{day:'numeric',month:'short'})} \u2013 ${D(addDays(i.weekStart,6)).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}`;
 function rangeText(w){if(!w.length)return '';const a=D(w[0].date),b=D(w[w.length-1].date);const f=d=>`${d.toLocaleDateString('en-AU',{weekday:'long'})} ${d.getDate()}`;const my=b.toLocaleDateString('en-AU',{month:'long',year:'numeric'});return w.length===1?`${f(a)} ${my}`:`${f(a)} to ${f(b)} ${my}`}
 function breakText(w){const b=[...new Set(w.map(d=>+d.breakMin))];return b.length===1&&b[0]>0?`Each day includes a ${b[0]}-minute unpaid lunch break.`:''}
